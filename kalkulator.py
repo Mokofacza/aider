@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Prosty kalkulator obsługujący podstawowe operacje arytmetyczne.
+Prosty kalkulator obsługujący podstawowe operacje arytmetyczne oraz modulo.
 
 Użycie:
     python kalkulator.py add 2 3
     python kalkulator.py sub 5 2
     python kalkulator.py mul 4 6
     python kalkulator.py div 10 2
+    python kalkulator.py mod 10 3
 
 Można także uruchomić w trybie interaktywnym:
     python kalkulator.py
@@ -37,6 +38,13 @@ def div(a: float, b: float) -> float:
     if b == 0:
         raise ZeroDivisionError("Dzielenie przez zero jest niedozwolone.")
     return a / b
+
+
+def mod(a: float, b: float) -> float:
+    """Zwraca resztę z dzielenia a przez b. Rzuca ZeroDivisionError przy dzieleniu przez zero."""
+    if b == 0:
+        raise ZeroDivisionError("Modulo przez zero jest niedozwolone.")
+    return a % b
 
 
 def parse_args(argv=None) -> argparse.Namespace:
@@ -73,6 +81,12 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser_div.add_argument("b", type=float, help="Mianownik.")
     parser_div.set_defaults(func=div)
 
+    # Modulo
+    parser_mod = subparsers.add_parser("mod", help="Oblicz resztę z dzielenia pierwszej liczby przez drugą.")
+    parser_mod.add_argument("a", type=float, help="Liczba, z której obliczamy resztę.")
+    parser_mod.add_argument("b", type=float, help="Moduł (dzielnik).")
+    parser_mod.set_defaults(func=mod)
+
     # Wymuszenie podania operacji – kompatybilne z wersjami <3.7
     if argv is None:
         # Gdy wywoływany jest skrypt bezpośrednio, ``argparse`` sam pobierze ``sys.argv[1:]``.
@@ -81,7 +95,7 @@ def parse_args(argv=None) -> argparse.Namespace:
         parsed = parser.parse_args(argv)
 
     if not hasattr(parsed, "func"):
-        parser.error("Nie podano operacji. Dostępne: add, sub, mul, div.")
+        parser.error("Nie podano operacji. Dostępne: add, sub, mul, div, mod.")
     return parsed
 
 
