@@ -14,7 +14,7 @@ Można także uruchomić w trybie interaktywnym:
 
 import argparse
 import sys
-from typing import Callable, Any
+from typing import Any
 
 
 def add(a: float, b: float) -> float:
