@@ -133,10 +133,43 @@ class Linter:
         if text or lines:
             return LintResult(text, lines)
 
+    def _get_python_executable(self):
+        """Get the path to a real Python interpreter.
+
+        In a PyInstaller bundle, sys.executable points to the bundled exe,
+        not the Python interpreter. This method finds a real Python on PATH.
+        """
+        if not getattr(sys, "frozen", False):
+            return sys.executable
+
+        import shutil
+        import subprocess
+
+        # Try 'python' first (standard on Windows), then 'python3' (standard on Linux/macOS).
+        # On Windows, 'python3.exe' in WindowsApps is often a Microsoft Store stub.
+        for name in ("python", "python3"):
+            path = shutil.which(name)
+            if path:
+                try:
+                    result = subprocess.run(
+                        [path, "--version"],
+                        capture_output=True,
+                        timeout=5,
+                    )
+                    if result.returncode == 0:
+                        return path
+                except Exception:
+                    continue
+        return None
+
     def flake8_lint(self, rel_fname):
+        python_exe = self._get_python_executable()
+        if python_exe is None:
+            return  # No Python interpreter available, skip flake8
+
         fatal = "E9,F821,F823,F831,F406,F407,F701,F702,F704,F706"
         flake8_cmd = [
-            sys.executable,
+            python_exe,
             "-m",
             "flake8",
             f"--select={fatal}",

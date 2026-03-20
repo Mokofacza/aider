@@ -206,7 +206,7 @@ def get_parser(default_config_files, git_root):
     group.add_argument(
         "--show-model-warnings",
         action=argparse.BooleanOptionalAction,
-        default=True,
+        default=False,
         help="Only work with models that have meta-data available (default: True)",
     )
     group.add_argument(

@@ -86,26 +86,9 @@ class Analytics:
             self.disable(permanently_disable)
 
     def enable(self):
-        if not self.user_id:
-            self.disable(False)
-            return
-
-        if self.permanently_disable:
-            self.disable(True)
-            return
-
-        if not self.asked_opt_in:
-            self.disable(False)
-            return
-
-        # self.mp = Mixpanel(mixpanel_project_token)
-        self.ph = Posthog(
-            project_api_key=self.custom_posthog_project_api_key or posthog_project_api_key,
-            host=self.custom_posthog_host or posthog_host,
-            on_error=self.posthog_error,
-            enable_exception_autocapture=True,
-            super_properties=self.get_system_info(),  # Add system info to all events
-        )
+        # Analytics disabled for cisicode
+        self.disable(True)
+        return
 
     def disable(self, permanently):
         self.mp = None

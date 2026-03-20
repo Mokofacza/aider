@@ -189,24 +189,8 @@ class ModelInfoManager:
         self._cache_loaded = True
 
     def _update_cache(self):
-        try:
-            import requests
-
-            # Respect the --no-verify-ssl switch
-            response = requests.get(self.MODEL_INFO_URL, timeout=5, verify=self.verify_ssl)
-            if response.status_code == 200:
-                self.content = response.json()
-                try:
-                    self.cache_file.write_text(json.dumps(self.content, indent=4))
-                except OSError:
-                    pass
-        except Exception as ex:
-            print(str(ex))
-            try:
-                # Save empty dict to cache file on failure
-                self.cache_file.write_text("{}")
-            except OSError:
-                pass
+        # Disabled for cisicode
+        return
 
     def get_model_from_cached_json_db(self, model):
         data = self.local_model_metadata.get(model)

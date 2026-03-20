@@ -958,7 +958,6 @@ class Coder:
         urls = list(set(url_pattern.findall(text)))  # Use set to remove duplicates
         for url in urls:
             url = url.rstrip(".',\"}")  # Added } to the characters to strip
-            self.io.offer_url(url)
         return urls
 
     def check_for_urls(self, inp: str) -> List[str]:
@@ -1676,7 +1675,6 @@ class Coder:
 
         res = "".join([line + "\n" for line in res])
         self.io.tool_error(res)
-        self.io.offer_url(urls.token_limits)
 
     def lint_edited(self, fnames):
         res = ""
@@ -2065,7 +2063,7 @@ class Coder:
         else:
             sep = " "
 
-        self.usage_report = tokens_report + sep + cost_report
+        self.usage_report = tokens_report + sep 
 
     def compute_costs_from_tokens(
         self, prompt_tokens, completion_tokens, cache_write_tokens, cache_hit_tokens
