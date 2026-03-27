@@ -48,9 +48,9 @@ def check_config_files_for_yes(config_files):
                 with open(config_file, "r") as f:
                     for line in f:
                         if line.strip().startswith("yes:"):
-                            print("Configuration error detected.")
-                            print(f"The file {config_file} contains a line starting with 'yes:'")
-                            print("Please replace 'yes:' with 'yes-always:' in this file.")
+                            print("Wykryto błąd konfiguracji.")
+                            print(f"Plik {config_file} zawiera linię zaczynającą się od 'yes:'")
+                            print("Zastąp 'yes:' przez 'yes-always:' w tym pliku.")
                             found = True
             except Exception:
                 pass
@@ -90,11 +90,11 @@ def make_new_repo(git_root, io):
         repo = git.Repo.init(git_root)
         check_gitignore(git_root, io, False)
     except ANY_GIT_ERROR as err:  # issue #1233
-        io.tool_error(f"Unable to create git repo in {git_root}")
+        io.tool_error(f"Nie można utworzyć repozytorium git w {git_root}")
         io.tool_output(str(err))
         return
 
-    io.tool_output(f"Git repository created in {git_root}")
+    io.tool_output(f"Utworzono repozytorium Git w {git_root}")
     return repo
 
 
@@ -116,11 +116,11 @@ def setup_git(git_root, io):
             pass
     elif cwd == Path.home():
         io.tool_warning(
-            "You should probably run aider in your project's directory, not your home dir."
+            "Prawdopodobnie powinieneś uruchamiać cisicode w katalogu projektu, a nie domowym."
         )
         return
     elif cwd and io.confirm_ask(
-        "No git repo found, create one to track aider's changes (recommended)?"
+        "Nie znaleziono repozytorium git, utworzyć je, by śledzić zmiany cisicode (zalecane)?"
     ):
         git_root = str(cwd.resolve())
         repo = make_new_repo(git_root, io)
@@ -144,10 +144,10 @@ def setup_git(git_root, io):
     with repo.config_writer() as git_config:
         if not user_name:
             git_config.set_value("user", "name", "Your Name")
-            io.tool_warning('Update git name with: git config user.name "Your Name"')
+            io.tool_warning('Zaktualizuj nazwę git wpisując: git config user.name "Twoje Imię"')
         if not user_email:
             git_config.set_value("user", "email", "you@example.com")
-            io.tool_warning('Update git email with: git config user.email "you@example.com"')
+            io.tool_warning('Zaktualizuj email git wpisując: git config user.email "ty@przyklad.pl"')
 
     return repo.working_tree_dir
 
@@ -160,8 +160,8 @@ def check_gitignore(git_root, io, ask=True):
         repo = git.Repo(git_root)
         patterns_to_add = []
 
-        if not repo.ignored(".aider"):
-            patterns_to_add.append(".aider*")
+        if not repo.ignored(".cisicode"):
+            patterns_to_add.append(".cisicode*")
 
         env_path = Path(git_root) / ".env"
         if env_path.exists() and not repo.ignored(".env"):
@@ -179,7 +179,7 @@ def check_gitignore(git_root, io, ask=True):
                 if not content.endswith("\n"):
                     content += "\n"
             except OSError as e:
-                io.tool_error(f"Error when trying to read {gitignore_file}: {e}")
+                io.tool_error(f"Błąd podczas odczytu {gitignore_file}: {e}")
                 return
         else:
             content = ""
@@ -187,19 +187,19 @@ def check_gitignore(git_root, io, ask=True):
         return
 
     if ask:
-        io.tool_output("You can skip this check with --no-gitignore")
-        if not io.confirm_ask(f"Add {', '.join(patterns_to_add)} to .gitignore (recommended)?"):
+        io.tool_output("Możesz pominąć to sprawdzanie za pomocą --no-gitignore")
+        if not io.confirm_ask(f"Dodać {', '.join(patterns_to_add)} do .gitignore (zalecane)?"):
             return
 
     content += "\n".join(patterns_to_add) + "\n"
 
     try:
         io.write_text(gitignore_file, content)
-        io.tool_output(f"Added {', '.join(patterns_to_add)} to .gitignore")
+        io.tool_output(f"Dodano {', '.join(patterns_to_add)} do .gitignore")
     except OSError as e:
-        io.tool_error(f"Error when trying to write to {gitignore_file}: {e}")
+        io.tool_error(f"Błąd podczas zapisu do {gitignore_file}: {e}")
         io.tool_output(
-            "Try running with appropriate permissions or manually add these patterns to .gitignore:"
+            "Spróbuj uruchomić z odpowiednimi uprawnieniami lub ręcznie dodaj te wzorce do .gitignore:"
         )
         for pattern in patterns_to_add:
             io.tool_output(f"  {pattern}")
@@ -209,7 +209,7 @@ def check_streamlit_install(io):
     return utils.check_pip_install_extra(
         io,
         "streamlit",
-        "You need to install the aider browser feature",
+        "Musisz zainstalować funkcję przeglądarki cisicode",
         ["aider-chat[browser]"],
     )
 
@@ -227,7 +227,7 @@ def write_streamlit_credentials():
         with open(credential_path, "w") as f:
             f.write(empty_creds)
     else:
-        print("Streamlit credentials already exist.")
+        print("Dane uwierzytelniające Streamlit już istnieją.")
 
 
 def launch_gui(args):
@@ -236,7 +236,7 @@ def launch_gui(args):
     from aider import gui
 
     print()
-    print("CONTROL-C to exit...")
+    print("CONTROL-C by wyjść...")
 
     # Necessary so streamlit does not prompt the user for an email address.
     write_streamlit_credentials()
@@ -255,7 +255,7 @@ def launch_gui(args):
     is_dev = "-dev" in str(__version__)
 
     if is_dev:
-        print("Watching for file changes.")
+        print("Obserwowanie zmian w plikach.")
     else:
         st_args += [
             "--global.developmentMode=false",
@@ -293,9 +293,9 @@ def parse_lint_cmds(lint_cmds, io):
         if cmd:
             res[lang] = cmd
         else:
-            io.tool_error(f'Unable to parse --lint-cmd "{lint_cmd}"')
-            io.tool_output('The arg should be "language: cmd --args ..."')
-            io.tool_output('For example: --lint-cmd "python: flake8 --select=E9"')
+            io.tool_error(f'Nie można przeanalizować --lint-cmd "{lint_cmd}"')
+            io.tool_output('Argument powinien mieć format "jezyk: komenda --arg ..."')
+            io.tool_output('Na przykład: --lint-cmd "python: flake8 --select=E9"')
             err = True
     if err:
         return
@@ -334,24 +334,24 @@ def generate_search_path_list(default_file, git_root, command_line_file):
 
 def register_models(git_root, model_settings_fname, io, verbose=False):
     model_settings_files = generate_search_path_list(
-        ".aider.model.settings.yml", git_root, model_settings_fname
+        ".cisicode.model.settings.yml", git_root, model_settings_fname
     )
 
     try:
         files_loaded = models.register_models(model_settings_files)
         if len(files_loaded) > 0:
             if verbose:
-                io.tool_output("Loaded model settings from:")
+                io.tool_output("Wczytano ustawienia modelu z:")
                 for file_loaded in files_loaded:
                     io.tool_output(f"  - {file_loaded}")  # noqa: E221
         elif verbose:
-            io.tool_output("No model settings files loaded")
+            io.tool_output("Nie wczytano żadnych plików z ustawieniami modelu")
     except Exception as e:
-        io.tool_error(f"Error loading aider model settings: {e}")
+        io.tool_error(f"Błąd wczytywania ustawień modelu: {e}")
         return 1
 
     if verbose:
-        io.tool_output("Searched for model settings files:")
+        io.tool_output("Szukano plików ustawień modelu:")
         for file in model_settings_files:
             io.tool_output(f"  - {file}")
 
@@ -367,7 +367,7 @@ def load_dotenv_files(git_root, dotenv_fname, encoding="utf-8"):
     )
 
     # Explicitly add the OAuth keys file to the beginning of the list
-    oauth_keys_file = Path.home() / ".aider" / "oauth-keys.env"
+    oauth_keys_file = Path.home() / ".cisicode" / "oauth-keys.env"
     if oauth_keys_file.exists():
         # Insert at the beginning so it's loaded first (and potentially overridden)
         dotenv_files.insert(0, str(oauth_keys_file.resolve()))
@@ -381,9 +381,9 @@ def load_dotenv_files(git_root, dotenv_fname, encoding="utf-8"):
                 load_dotenv(fname, override=True, encoding=encoding)
                 loaded.append(fname)
         except OSError as e:
-            print(f"OSError loading {fname}: {e}")
+            print(f"Błąd OSError podczas wczytywania {fname}: {e}")
         except Exception as e:
-            print(f"Error loading {fname}: {e}")
+            print(f"Błąd podczas wczytywania {fname}: {e}")
     return loaded
 
 
@@ -395,17 +395,17 @@ def register_litellm_models(git_root, model_metadata_fname, io, verbose=False):
     model_metadata_files.append(str(resource_metadata))
 
     model_metadata_files += generate_search_path_list(
-        ".aider.model.metadata.json", git_root, model_metadata_fname
+        ".cisicode.model.metadata.json", git_root, model_metadata_fname
     )
 
     try:
         model_metadata_files_loaded = models.register_litellm_models(model_metadata_files)
         if len(model_metadata_files_loaded) > 0 and verbose:
-            io.tool_output("Loaded model metadata from:")
+            io.tool_output("Wczytano metadane modelu z:")
             for model_metadata_file in model_metadata_files_loaded:
                 io.tool_output(f"  - {model_metadata_file}")  # noqa: E221
     except Exception as e:
-        io.tool_error(f"Error loading model metadata models: {e}")
+        io.tool_error(f"Błąd wczytywania metadanych modeli: {e}")
         return 1
 
 
@@ -414,7 +414,7 @@ def sanity_check_repo(repo, io):
         return True
 
     if not repo.repo.working_tree_dir:
-        io.tool_error("The git repo does not seem to have a working tree?")
+        io.tool_error("Wygląda na to, że repozytorium git nie ma drzewa roboczego?")
         return False
 
     bad_ver = False
@@ -425,9 +425,9 @@ def sanity_check_repo(repo, io):
         error_msg = str(repo.git_repo_error)
     except UnicodeDecodeError as exc:
         error_msg = (
-            "Failed to read the Git repository. This issue is likely caused by a path encoded "
-            f'in a format different from the expected encoding "{sys.getfilesystemencoding()}".\n'
-            f"Internal error: {str(exc)}"
+            "Nie udało się odczytać repozytorium Git. Prawdopodobnie ścieżka jest zakodowana "
+            f'w formacie innym niż oczekiwane kodowanie "{sys.getfilesystemencoding()}".\n'
+            f"Błąd wewnętrzny: {str(exc)}"
         )
     except ANY_GIT_ERROR as exc:
         error_msg = str(exc)
@@ -437,12 +437,12 @@ def sanity_check_repo(repo, io):
         bad_ver = True
 
     if bad_ver:
-        io.tool_error("Aider only works with git repos with version number 1 or 2.")
-        io.tool_output("You may be able to convert your repo: git update-index --index-version=2")
-        io.tool_output("Or run aider --no-git to proceed without using git.")
+        io.tool_error("CisiCode działa tylko z repozytoriami git w wersji 1 lub 2.")
+        io.tool_output("Możesz przekonwertować repozytorium: git update-index --index-version=2")
+        io.tool_output("Lub uruchom cisicode --no-git, aby kontynuować bez użycia git.")
         return False
 
-    io.tool_error("Unable to read git repository, it may be corrupt?")
+    io.tool_error("Nie można odczytać repozytorium git, może być uszkodzone?")
     io.tool_output(error_msg)
     return False
 
@@ -460,7 +460,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
     else:
         git_root = get_git_root()
 
-    conf_fname = Path(".aider.conf.yml")
+    conf_fname = Path(".cisicode.conf.yml")
 
     default_config_files = []
     try:
@@ -485,9 +485,9 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         raise e
 
     if args.verbose:
-        print("Config files search order, if no --config:")
+        print("Kolejność wyszukiwania plików konfiguracyjnych, jeśli nie podano --config:")
         for file in default_config_files:
-            exists = "(exists)" if Path(file).exists() else ""
+            exists = "(istnieje)" if Path(file).exists() else ""
             print(f"  - {file} {exists}")
 
     default_config_files.reverse()
@@ -504,7 +504,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
 
     if args.shell_completions:
         # Ensure parser.prog is set for shtab, though it should be by default
-        parser.prog = "aider"
+        parser.prog = "cisicode"
         print(shtab.complete(parser, shell=args.shell_completions))
         sys.exit(0)
 
@@ -513,7 +513,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
 
     if args.analytics_disable:
         analytics = Analytics(permanently_disable=True)
-        print("Analytics have been permanently disabled.")
+        print("Analityka została na stałe wyłączona.")
 
     if not args.verify_ssl:
         import httpx
@@ -583,7 +583,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         if not io.pretty:
             raise err
         io = get_io(False)
-        io.tool_warning("Terminal does not support pretty output (UnicodeDecodeError)")
+        io.tool_warning("Terminal nie obsługuje ładnego formatowania (UnicodeDecodeError)")
 
     # Process any environment variables set via --set-env
     if args.set_env:
@@ -592,8 +592,8 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
                 name, value = env_setting.split("=", 1)
                 os.environ[name.strip()] = value.strip()
             except ValueError:
-                io.tool_error(f"Invalid --set-env format: {env_setting}")
-                io.tool_output("Format should be: ENV_VAR_NAME=value")
+                io.tool_error(f"Nieprawidłowy format --set-env: {env_setting}")
+                io.tool_output("Format powinien wyglądać: NAZWA_ZMIENNEJ=wartość")
                 return 1
 
     # Process any API keys set via --api-key
@@ -604,8 +604,8 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
                 env_var = f"{provider.strip().upper()}_API_KEY"
                 os.environ[env_var] = key.strip()
             except ValueError:
-                io.tool_error(f"Invalid --api-key format: {api_setting}")
-                io.tool_output("Format should be: provider=key")
+                io.tool_error(f"Nieprawidłowy format --api-key: {api_setting}")
+                io.tool_output("Format powinien wyglądać: dostawca=klucz")
                 return 1
 
     if args.anthropic_api_key:
@@ -620,15 +620,15 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         os.environ["OPENAI_API_BASE"] = args.openai_api_base
     if args.openai_api_version:
         io.tool_warning(
-            "--openai-api-version is deprecated, use --set-env OPENAI_API_VERSION=<value>"
+            "--openai-api-version jest przestarzałe, użyj --set-env OPENAI_API_VERSION=<wartość>"
         )
         os.environ["OPENAI_API_VERSION"] = args.openai_api_version
     if args.openai_api_type:
-        io.tool_warning("--openai-api-type is deprecated, use --set-env OPENAI_API_TYPE=<value>")
+        io.tool_warning("--openai-api-type jest przestarzałe, użyj --set-env OPENAI_API_TYPE=<wartość>")
         os.environ["OPENAI_API_TYPE"] = args.openai_api_type
     if args.openai_organization_id:
         io.tool_warning(
-            "--openai-organization-id is deprecated, use --set-env OPENAI_ORGANIZATION=<value>"
+            "--openai-organization-id jest przestarzałe, użyj --set-env OPENAI_ORGANIZATION=<wartość>"
         )
         os.environ["OPENAI_ORGANIZATION"] = args.openai_organization_id
 
@@ -641,18 +641,17 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
     if args.analytics is not False:
         if analytics.need_to_ask(args.analytics):
             io.tool_output(
-                "Aider respects your privacy and never collects your code, chat messages, keys or"
-                " personal info."
+                "CisiCode szanuje Twoją prywatność i nigdy nie zbiera Twojego kodu, wiadomości z czatu, kluczy ani danych osobowych."
             )
-            io.tool_output(f"For more info: {urls.analytics}")
+            io.tool_output(f"Więcej informacji: {urls.analytics}")
             disable = not io.confirm_ask(
-                "Allow collection of anonymous analytics to help improve aider?"
+                "Zezwolić na zbieranie anonimowych statystyk, aby pomóc w ulepszaniu cisicode?"
             )
 
             analytics.asked_opt_in = True
             if disable:
                 analytics.disable(permanently=True)
-                io.tool_output("Analytics have been permanently disabled.")
+                io.tool_output("Analityka została na stałe wyłączona.")
 
             analytics.save_data()
             io.tool_output()
@@ -673,7 +672,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
 
     if args.verbose:
         for fname in loaded_dotenvs:
-            io.tool_output(f"Loaded {fname}")
+            io.tool_output(f"Wczytano {fname}")
 
     all_files = args.files + (args.file or [])
     fnames = [str(Path(fn).resolve()) for fn in all_files]
@@ -689,11 +688,11 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         good = True
         for fname in all_files:
             if Path(fname).is_dir():
-                io.tool_error(f"{fname} is a directory, not provided alone.")
+                io.tool_error(f"{fname} jest katalogiem, a nie został podany sam.")
                 good = False
         if not good:
             io.tool_output(
-                "Provide either a single directory of a git repo, or a list of one or more files."
+                "Podaj pojedynczy katalog repozytorium git lub listę jednego lub więcej plików."
             )
             analytics.event("exit", reason="Invalid directory input")
             return 1
@@ -705,7 +704,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
                 git_dname = str(Path(all_files[0]).resolve())
                 fnames = []
             else:
-                io.tool_error(f"{all_files[0]} is a directory, but --no-git selected.")
+                io.tool_error(f"{all_files[0]} jest katalogiem, ale wybrano --no-git.")
                 analytics.event("exit", reason="Directory with --no-git")
                 return 1
 
@@ -766,8 +765,8 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             # Split on first colon only
             parts = alias_def.split(":", 1)
             if len(parts) != 2:
-                io.tool_error(f"Invalid alias format: {alias_def}")
-                io.tool_output("Format should be: alias:model-name")
+                io.tool_error(f"Nieprawidłowy format aliasu: {alias_def}")
+                io.tool_output("Format powinien wyglądać: alias:nazwa-modelu")
                 analytics.event("exit", reason="Invalid alias format error")
                 return 1
             alias, model = parts
@@ -784,8 +783,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
     # Check if an OpenRouter model was selected/specified but the key is missing
     if args.model.startswith("openrouter/") and not os.environ.get("OPENROUTER_API_KEY"):
         io.tool_warning(
-            f"The specified model '{args.model}' requires an OpenRouter API key, which was not"
-            " found."
+            f"Wskazany model '{args.model}' wymaga klucza API OpenRouter, którego nie znaleziono."
         )
         # Attempt OAuth flow because the specific model needs it
         if offer_openrouter_oauth(io, analytics):
@@ -793,13 +791,13 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             # Check if the key is now present after the flow.
             if os.environ.get("OPENROUTER_API_KEY"):
                 io.tool_output(
-                    "OpenRouter successfully connected."
+                    "Połączenie z OpenRouter powiodło się."
                 )  # Inform user connection worked
             else:
                 # This case should ideally not happen if offer_openrouter_oauth succeeded
                 # but check defensively.
                 io.tool_error(
-                    "OpenRouter authentication seemed successful, but the key is still missing."
+                    "Uwierzytelnienie OpenRouter powiodło się, ale wciąż brakuje klucza."
                 )
                 analytics.event(
                     "exit",
@@ -809,9 +807,9 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         else:
             # OAuth failed or was declined by the user
             io.tool_error(
-                f"Unable to proceed without an OpenRouter API key for model '{args.model}'."
+                f"Nie można kontynuować bez klucza API OpenRouter dla modelu '{args.model}'."
             )
-            io.offer_url(urls.models_and_keys, "Open documentation URL for more info?")
+            io.offer_url(urls.models_and_keys, "Otworzyć URL dokumentacji, aby uzyskać więcej informacji?")
             analytics.event(
                 "exit",
                 reason="OpenRouter key missing for specified model and OAuth failed/declined",
@@ -829,7 +827,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
     # Check if deprecated remove_reasoning is set
     if main_model.remove_reasoning is not None:
         io.tool_warning(
-            "Model setting 'remove_reasoning' is deprecated, please use 'reasoning_tag' instead."
+            "Ustawienie modelu 'remove_reasoning' jest przestarzałe, użyj zamiast niego 'reasoning_tag'."
         )
 
     # Set reasoning effort and thinking tokens if specified
@@ -860,11 +858,10 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
                 or setting["name"] not in main_model.accepts_settings
             ):
                 io.tool_warning(
-                    f"Warning: {main_model.name} does not support '{setting['name']}', ignoring."
+                    f"Ostrzeżenie: {main_model.name} nie obsługuje '{setting['name']}', pomijanie."
                 )
                 io.tool_output(
-                    f"Use --no-check-model-accepts-settings to force the '{setting['name']}'"
-                    " setting."
+                    f"Użyj --no-check-model-accepts-settings, aby wymusić ustawienie '{setting['name']}'."
                 )
 
     if args.copy_paste and args.edit_format is None:
@@ -872,10 +869,10 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             main_model.edit_format = "editor-" + main_model.edit_format
 
     if args.verbose:
-        io.tool_output("Model metadata:")
+        io.tool_output("Metadane modelu:")
         io.tool_output(json.dumps(main_model.info, indent=4))
 
-        io.tool_output("Model settings:")
+        io.tool_output("Ustawienia modelu:")
         for attr in sorted(fields(ModelSettings), key=lambda x: x.name):
             val = getattr(main_model, attr.name)
             val = json.dumps(val, indent=4)
@@ -890,7 +887,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         problem = models.sanity_check_models(io, main_model)
         if problem:
             analytics.event("model warning", main_model=main_model)
-            io.tool_output("You can skip this check with --no-show-model-warnings")
+            io.tool_output("Możesz pominąć to sprawdzanie za pomocą --no-show-model-warnings")
 
     repo = None
     if args.git:
@@ -949,7 +946,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
     if not main_model.streaming:
         if args.stream:
             io.tool_warning(
-                f"Warning: Streaming is not supported by {main_model.name}. Disabling streaming."
+                f"Ostrzeżenie: Strumieniowanie nie jest obsługiwane przez {main_model.name}. Wyłączam strumieniowanie."
             )
         args.stream = False
 
@@ -1046,7 +1043,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
 
     if args.test:
         if not args.test_cmd:
-            io.tool_error("No --test-cmd provided.")
+            io.tool_error("Nie podano --test-cmd.")
             analytics.event("exit", reason="No test command provided")
             return 1
         coder.commands.cmd_test(args.test_cmd)
@@ -1055,7 +1052,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
 
     if args.commit:
         if args.dry_run:
-            io.tool_output("Dry run enabled, skipping commit.")
+            io.tool_output("Tryb testowy ('dry run') włączony, pomijam commit.")
         else:
             coder.commands.cmd_commit()
 
@@ -1088,22 +1085,21 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         args.message = "/paste"
 
     if args.show_release_notes is True:
-        io.tool_output(f"Opening release notes: {urls.release_notes}")
+        io.tool_output(f"Otwieranie notatek do wydania: {urls.release_notes}")
         io.tool_output()
         webbrowser.open(urls.release_notes)
 
 
     if git_root and Path.cwd().resolve() != Path(git_root).resolve():
         io.tool_warning(
-            "Note: in-chat filenames are always relative to the git working dir, not the current"
-            " working dir."
+            "Uwaga: nazwy plików na czacie są zawsze względem katalogu roboczego git, a nie obecnego katalogu."
         )
 
-        io.tool_output(f"Cur working dir: {Path.cwd()}")
-        io.tool_output(f"Git working dir: {git_root}")
+        io.tool_output(f"Obecny katalog: {Path.cwd()}")
+        io.tool_output(f"Katalog git: {git_root}")
 
     if args.stream and args.cache_prompts:
-        io.tool_warning("Cost estimates may be inaccurate when using streaming and caching.")
+        io.tool_warning("Szacunki kosztów mogą być niedokładne przy użyciu strumieniowania i pamięci podręcznej.")
 
     if args.load:
         commands.cmd_load(args.load)
@@ -1124,11 +1120,11 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             io.tool_output()
             coder.run(with_message=message_from_file)
         except FileNotFoundError:
-            io.tool_error(f"Message file not found: {args.message_file}")
+            io.tool_error(f"Nie znaleziono pliku wiadomości: {args.message_file}")
             analytics.event("exit", reason="Message file not found")
             return 1
         except IOError as e:
-            io.tool_error(f"Error reading message file: {e}")
+            io.tool_error(f"Błąd podczas odczytu pliku wiadomości: {e}")
             analytics.event("exit", reason="Message file IO error")
             return 1
 
@@ -1167,7 +1163,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
 
 def is_first_run_of_new_version(io, verbose=False):
     """Check if this is the first run of a new version/executable combination"""
-    installs_file = Path.home() / ".aider" / "installs.json"
+    installs_file = Path.home() / ".cisicode" / "installs.json"
     key = (__version__, sys.executable)
 
     # Never show notes for .dev versions
@@ -1202,9 +1198,9 @@ def is_first_run_of_new_version(io, verbose=False):
         return is_first_run
 
     except Exception as e:
-        io.tool_warning(f"Error checking version: {e}")
+        io.tool_warning(f"Błąd podczas sprawdzania wersji: {e}")
         if verbose:
-            io.tool_output(f"Full exception details: {traceback.format_exc()}")
+            io.tool_output(f"Pełne szczegóły wyjątku: {traceback.format_exc()}")
         return True  # Safer to assume it's a first run if we hit an error
 
 
@@ -1219,7 +1215,7 @@ def check_and_load_imports(io, is_first_run, verbose=False):
                 load_slow_imports(swallow=False)
             except Exception as err:
                 io.tool_error(str(err))
-                io.tool_output("Error loading required imports. Did you install aider properly?")
+                io.tool_output("Błąd ładowania wymaganych modułów. Czy cisicode zostało poprawnie zainstalowane?")
                 sys.exit(1)
 
             if verbose:
@@ -1232,9 +1228,9 @@ def check_and_load_imports(io, is_first_run, verbose=False):
             thread.start()
 
     except Exception as e:
-        io.tool_warning(f"Error in loading imports: {e}")
+        io.tool_warning(f"Błąd podczas ładowania modułów: {e}")
         if verbose:
-            io.tool_output(f"Full exception details: {traceback.format_exc()}")
+            io.tool_output(f"Pełne szczegóły wyjątku: {traceback.format_exc()}")
 
 
 def load_slow_imports(swallow=True):

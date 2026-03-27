@@ -177,7 +177,7 @@ class GUI:
 
             with st.popover("Update your `.gitignore` file"):
                 st.write("It's best to keep aider's internal files out of your git repo.")
-                self.button("Add `.aider*` to `.gitignore`", key=random.random(), help="?")
+                self.button("Add `.cisicode*` to `.gitignore`", key=random.random(), help="?")
 
     def do_add_to_chat(self):
         # with st.expander("Add to the chat", expanded=True):

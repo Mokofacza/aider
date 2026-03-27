@@ -9,18 +9,18 @@ import aider
 from aider import utils
 from aider.dump import dump  # noqa: F401
 
-VERSION_CHECK_FNAME = Path.home() / ".aider" / "caches" / "versioncheck"
+VERSION_CHECK_FNAME = Path.home() / ".cisicode" / "caches" / "versioncheck"
 
 
 def install_from_main_branch(io):
     """
-    Install the latest version of aider from the main branch of the GitHub repository.
+    Install the latest version of cisicode from the main branch of the GitHub repository.
     """
 
     return utils.check_pip_install_extra(
         io,
         None,
-        "Install the development version of aider from the main branch?",
+        "Zainstalować wersję deweloperską cisicode z głównej gałęzi (main)?",
         ["git+https://github.com/Aider-AI/aider.git"],
         self_update=True,
     )
@@ -32,14 +32,14 @@ def install_upgrade(io, latest_version=None):
     """
 
     if latest_version:
-        new_ver_text = f"Newer aider version v{latest_version} is available."
+        new_ver_text = f"Dostępna jest nowsza wersja cisicode v{latest_version}."
     else:
-        new_ver_text = "Install latest version of aider?"
+        new_ver_text = "Zainstalować najnowszą wersję cisicode?"
 
     docker_image = os.environ.get("AIDER_DOCKER_IMAGE")
     if docker_image:
         text = f"""
-{new_ver_text} To upgrade, run:
+{new_ver_text} Aby zaktualizować, uruchom:
 
     docker pull {docker_image}
 """
@@ -55,7 +55,7 @@ def install_upgrade(io, latest_version=None):
     )
 
     if success:
-        io.tool_output("Re-run aider to use new version.")
+        io.tool_output("Uruchom cisicode ponownie, aby użyć nowej wersji.")
         sys.exit()
 
     return
@@ -63,5 +63,5 @@ def install_upgrade(io, latest_version=None):
 
 def check_version(io, just_check=False, verbose=False):
     if just_check or verbose:
-        io.tool_output("Version checking is disabled in this build.")
+        io.tool_output("Sprawdzanie wersji jest wyłączone w tym przebiegu.")
     return False

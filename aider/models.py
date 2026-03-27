@@ -154,7 +154,7 @@ class ModelInfoManager:
     CACHE_TTL = 60 * 60 * 24  # 24 hours
 
     def __init__(self):
-        self.cache_dir = Path.home() / ".aider" / "caches"
+        self.cache_dir = Path.home() / ".cisicode" / "caches"
         self.cache_file = self.cache_dir / "model_prices_and_context_window.json"
         self.content = None
         self.local_model_metadata = {}

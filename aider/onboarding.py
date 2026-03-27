@@ -360,7 +360,7 @@ def start_openrouter_oauth_flow(io, analytics):
 
         # Save the key to the oauth-keys.env file
         try:
-            config_dir = os.path.expanduser("~/.aider")
+            config_dir = os.path.expanduser("~/.cisicode")
             os.makedirs(config_dir, exist_ok=True)
             key_file = os.path.join(config_dir, "oauth-keys.env")
             with open(key_file, "a", encoding="utf-8") as f:

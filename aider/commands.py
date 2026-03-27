@@ -85,7 +85,7 @@ class Commands:
         self.original_read_only_fnames = set(original_read_only_fnames or [])
 
     def cmd_model(self, args):
-        "Switch the Main Model to a new LLM"
+        "Przełącz główny model na nowy LLM"
 
         model_name = args.strip()
         if not model_name:
@@ -112,7 +112,7 @@ class Commands:
         raise SwitchCoder(main_model=model, edit_format=new_edit_format)
 
     def cmd_editor_model(self, args):
-        "Switch the Editor Model to a new LLM"
+        "Przełącz model edytora na nowy LLM"
 
         model_name = args.strip()
         model = models.Model(
@@ -124,7 +124,7 @@ class Commands:
         raise SwitchCoder(main_model=model)
 
     def cmd_weak_model(self, args):
-        "Switch the Weak Model to a new LLM"
+        "Przełącz słaby model na nowy LLM"
 
         model_name = args.strip()
         model = models.Model(
@@ -136,7 +136,7 @@ class Commands:
         raise SwitchCoder(main_model=model)
 
     def cmd_chat_mode(self, args):
-        "Switch to a new chat mode"
+        "Przełącz tryb czatu"
 
         from aider import coders
 
@@ -154,34 +154,33 @@ class Commands:
 
         show_formats = OrderedDict(
             [
-                ("help", "Get help about using aider (usage, config, troubleshoot)."),
-                ("ask", "Ask questions about your code without making any changes."),
-                ("code", "Ask for changes to your code (using the best edit format)."),
+                ("help", "Uzyskaj pomoc dotyczącą korzystania z CisiCode (użytkowanie, konfiguracja, rozwiązywanie problemów)."),
+                ("ask", "Zadawaj pytania dotyczące kodu bez wprowadzania zmian."),
+                ("code", "Poproś o zmiany w kodzie (używając najlepszego formatu edycji)."),
                 (
                     "architect",
                     (
-                        "Work with an architect model to design code changes, and an editor to make"
-                        " them."
+                        "Pracuj z modelem architekta do projektowania zmian w kodzie i edytorem do ich wprowadzania."
                     ),
                 ),
                 (
                     "context",
-                    "Automatically identify which files will need to be edited.",
+                    "Automatycznie identyfikuj, które pliki będą wymagały edycji.",
                 ),
             ]
         )
 
         if ef not in valid_formats and ef not in show_formats:
             if ef:
-                self.io.tool_error(f'Chat mode "{ef}" should be one of these:\n')
+                self.io.tool_error(f'Tryb czatu "{ef}" powinien być jednym z:\n')
             else:
-                self.io.tool_output("Chat mode should be one of these:\n")
+                self.io.tool_output("Tryb czatu powinien być jednym z:\n")
 
             max_format_length = max(len(format) for format in valid_formats.keys())
             for format, description in show_formats.items():
                 self.io.tool_output(f"- {format:<{max_format_length}} : {description}")
 
-            self.io.tool_output("\nOr a valid edit format:\n")
+            self.io.tool_output("\nLub prawidłowy format edycji:\n")
             for format, description in valid_formats.items():
                 if format not in show_formats:
                     self.io.tool_output(f"- {format:<{max_format_length}} : {description}")
@@ -207,24 +206,24 @@ class Commands:
         return models
 
     def cmd_models(self, args):
-        "Search the list of available models"
+        "Szukaj na liście dostępnych modeli"
 
         args = args.strip()
 
         if args:
             models.print_matching_models(self.io, args)
         else:
-            self.io.tool_output("Please provide a partial model name to search for.")
+            self.io.tool_output("Podaj fragmentaryczną nazwę modelu, aby wyszukać.")
 
     def cmd_web(self, args, return_content=False):
-        "Scrape a webpage, convert to markdown and send in a message"
+        "Pobierz stronę internetową, przekonwertuj na markdown i wyślij jako wiadomość"
 
         url = args.strip()
         if not url:
-            self.io.tool_error("Please provide a URL to scrape.")
+            self.io.tool_error("Podaj adres URL do pobrania.")
             return
 
-        self.io.tool_output(f"Scraping {url}...")
+        self.io.tool_output(f"Pobieram {url}...")
         if not self.scraper:
             disable_playwright = getattr(self.args, "disable_playwright", False)
             if disable_playwright:
@@ -232,7 +231,7 @@ class Commands:
             else:
                 res = install_playwright(self.io)
                 if not res:
-                    self.io.tool_warning("Unable to initialize playwright.")
+                    self.io.tool_warning("Nie można zainicjalizować playwright.")
 
             self.scraper = Scraper(
                 print_error=self.io.tool_error,
@@ -245,7 +244,7 @@ class Commands:
         if return_content:
             return content
 
-        self.io.tool_output("... added to chat.")
+        self.io.tool_output("... dodano do czatu.")
 
         self.coder.cur_messages += [
             dict(role="user", content=content),
@@ -289,7 +288,7 @@ class Commands:
         cmd_method_name = f"cmd_{cmd_name}"
         cmd_method = getattr(self, cmd_method_name, None)
         if not cmd_method:
-            self.io.tool_output(f"Error: Command {cmd_name} not found.")
+            self.io.tool_output(f"Błąd: Komenda {cmd_name} nie znaleziona.")
             return
 
         try:
@@ -327,37 +326,37 @@ class Commands:
             self.coder.event(f"command_{command}")
             return self.do_run(command, rest_inp)
         elif len(matching_commands) > 1:
-            self.io.tool_error(f"Ambiguous command: {', '.join(matching_commands)}")
+            self.io.tool_error(f"Niejednoznaczna komenda: {', '.join(matching_commands)}")
         else:
-            self.io.tool_error(f"Invalid command: {first_word}")
+            self.io.tool_error(f"Nieprawidłowa komenda: {first_word}")
 
     # any method called cmd_xxx becomes a command automatically.
     # each one must take an args param.
 
     def cmd_commit(self, args=None):
-        "Commit edits to the repo made outside the chat (commit message optional)"
+        "Zatwierdź zmiany w repozytorium dokonane poza czatem (opcjonalna wiadomość commitu)"
         try:
             self.raw_cmd_commit(args)
         except ANY_GIT_ERROR as err:
-            self.io.tool_error(f"Unable to complete commit: {err}")
+            self.io.tool_error(f"Nie można ukończyć commitu: {err}")
 
     def raw_cmd_commit(self, args=None):
         if not self.coder.repo:
-            self.io.tool_error("No git repository found.")
+            self.io.tool_error("Nie znaleziono repozytorium git.")
             return
 
         if not self.coder.repo.is_dirty():
-            self.io.tool_warning("No more changes to commit.")
+            self.io.tool_warning("Brak zmian do zatwierdzenia.")
             return
 
         commit_message = args.strip() if args else None
         self.coder.repo.commit(message=commit_message, coder=self.coder)
 
     def cmd_lint(self, args="", fnames=None):
-        "Lint and fix in-chat files or all dirty files if none in chat"
+        "Sprawdź i napraw pliki w czacie lub wszystkie zmienione pliki, jeśli brak w czacie"
 
         if not self.coder.repo:
-            self.io.tool_error("No git repository found.")
+            self.io.tool_error("Nie znaleziono repozytorium git.")
             return
 
         if not fnames:
@@ -368,7 +367,7 @@ class Commands:
             fnames = self.coder.repo.get_dirty_files()
 
         if not fnames:
-            self.io.tool_warning("No dirty files to lint.")
+            self.io.tool_warning("Brak zmienionych plików do sprawdzenia.")
             return
 
         fnames = [self.coder.abs_root_path(fname) for fname in fnames]
@@ -386,7 +385,7 @@ class Commands:
                 continue
 
             self.io.tool_output(errors)
-            if not self.io.confirm_ask(f"Fix lint errors in {fname}?", default="y"):
+            if not self.io.confirm_ask(f"Naprawić błędy lintowania w {fname}?", default="y"):
                 continue
 
             # Commit everything before we start fixing lint errors
@@ -409,10 +408,10 @@ class Commands:
             self.cmd_commit("")
 
     def cmd_clear(self, args):
-        "Clear the chat history"
+        "Wyczyść historię czatu"
 
         self._clear_chat_history()
-        self.io.tool_output("All chat history cleared.")
+        self.io.tool_output("Cała historia czatu wyczyszczona.")
 
     def _drop_all_files(self):
         self.coder.abs_fnames = set()
@@ -437,13 +436,13 @@ class Commands:
         self.coder.cur_messages = []
 
     def cmd_reset(self, args):
-        "Drop all files and clear the chat history"
+        "Usuń wszystkie pliki i wyczyść historię czatu"
         self._drop_all_files()
         self._clear_chat_history()
-        self.io.tool_output("All files dropped and chat history cleared.")
+        self.io.tool_output("Wszystkie pliki usunięte i historia czatu wyczyszczona.")
 
     def cmd_tokens(self, args):
-        "Report on the number of tokens used by the current chat context"
+        "Wyświetl liczbę tokenów używanych przez bieżący kontekst czatu"
 
         res = []
 
@@ -461,13 +460,13 @@ class Commands:
         ]
 
         tokens = self.coder.main_model.token_count(msgs)
-        res.append((tokens, "system messages", ""))
+        res.append((tokens, "wiadomości systemowe", ""))
 
         # chat history
         msgs = self.coder.done_messages + self.coder.cur_messages
         if msgs:
             tokens = self.coder.main_model.token_count(msgs)
-            res.append((tokens, "chat history", "use /clear to clear"))
+            res.append((tokens, "historia czatu", "użyj /clear aby wyczyścić"))
 
         # repo map
         other_files = set(self.coder.get_all_abs_files()) - set(self.coder.abs_fnames)
@@ -475,7 +474,7 @@ class Commands:
             repo_content = self.coder.repo_map.get_repo_map(self.coder.abs_fnames, other_files)
             if repo_content:
                 tokens = self.coder.main_model.token_count(repo_content)
-                res.append((tokens, "repository map", "use --map-tokens to resize"))
+                res.append((tokens, "mapa repozytorium", "użyj --map-tokens aby zmienić rozmiar"))
 
         fence = "`" * 3
 
@@ -490,7 +489,7 @@ class Commands:
                 # approximate
                 content = f"{relative_fname}\n{fence}\n" + content + "{fence}\n"
                 tokens = self.coder.main_model.token_count(content)
-            file_res.append((tokens, f"{relative_fname}", "/drop to remove"))
+            file_res.append((tokens, f"{relative_fname}", "/drop aby usunąć"))
 
         # read-only files
         for fname in self.coder.abs_read_only_fnames:
@@ -500,13 +499,13 @@ class Commands:
                 # approximate
                 content = f"{relative_fname}\n{fence}\n" + content + "{fence}\n"
                 tokens = self.coder.main_model.token_count(content)
-                file_res.append((tokens, f"{relative_fname} (read-only)", "/drop to remove"))
+                file_res.append((tokens, f"{relative_fname} (tylko do odczytu)", "/drop aby usunąć"))
 
         file_res.sort()
         res.extend(file_res)
 
         self.io.tool_output(
-            f"Approximate context window usage for {self.coder.main_model.name}, in tokens:"
+            f"Przybliżone użycie okna kontekstu dla {self.coder.main_model.name}, w tokenach:"
         )
         self.io.tool_output()
 
@@ -529,7 +528,7 @@ class Commands:
             self.io.tool_output(f"${cost:7.4f} {fmt(tk)} {msg} {tip}")  # noqa: E231
 
         self.io.tool_output("=" * (width + cost_width + 1))
-        self.io.tool_output(f"${total_cost:7.4f} {fmt(total)} tokens total")  # noqa: E231
+        self.io.tool_output(f"${total_cost:7.4f} {fmt(total)} tokenów łącznie")  # noqa: E231
 
         limit = self.coder.main_model.info.get("max_input_tokens") or 0
         if not limit:
@@ -537,50 +536,50 @@ class Commands:
 
         remaining = limit - total
         if remaining > 1024:
-            self.io.tool_output(f"{cost_pad}{fmt(remaining)} tokens remaining in context window")
+            self.io.tool_output(f"{cost_pad}{fmt(remaining)} tokenów pozostało w oknie kontekstu")
         elif remaining > 0:
             self.io.tool_error(
-                f"{cost_pad}{fmt(remaining)} tokens remaining in context window (use /drop or"
-                " /clear to make space)"
+                f"{cost_pad}{fmt(remaining)} tokenów pozostało w oknie kontekstu (użyj /drop lub"
+                " /clear aby zwolnić miejsce)"
             )
         else:
             self.io.tool_error(
-                f"{cost_pad}{fmt(remaining)} tokens remaining, window exhausted (use /drop or"
-                " /clear to make space)"
+                f"{cost_pad}{fmt(remaining)} tokenów pozostało, okno wyczerpane (użyj /drop lub"
+                " /clear aby zwolnić miejsce)"
             )
-        self.io.tool_output(f"{cost_pad}{fmt(limit)} tokens max context window size")
+        self.io.tool_output(f"{cost_pad}{fmt(limit)} tokenów maks. rozmiar okna kontekstu")
 
     def cmd_undo(self, args):
-        "Undo the last git commit if it was done by aider"
+        "Cofnij ostatni commit git jeśli był wykonany przez cisicode"
         try:
             self.raw_cmd_undo(args)
         except ANY_GIT_ERROR as err:
-            self.io.tool_error(f"Unable to complete undo: {err}")
+            self.io.tool_error(f"Nie można cofnąć: {err}")
 
     def raw_cmd_undo(self, args):
         if not self.coder.repo:
-            self.io.tool_error("No git repository found.")
+            self.io.tool_error("Nie znaleziono repozytorium git.")
             return
 
         last_commit = self.coder.repo.get_head_commit()
         if not last_commit or not last_commit.parents:
-            self.io.tool_error("This is the first commit in the repository. Cannot undo.")
+            self.io.tool_error("To jest pierwszy commit w repozytorium. Nie można cofnąć.")
             return
 
         last_commit_hash = self.coder.repo.get_head_commit_sha(short=True)
         last_commit_message = self.coder.repo.get_head_commit_message("(unknown)").strip()
         last_commit_message = (last_commit_message.splitlines() or [""])[0]
         if last_commit_hash not in self.coder.aider_commit_hashes:
-            self.io.tool_error("The last commit was not made by aider in this chat session.")
+            self.io.tool_error("Ostatni commit nie był wykonany przez cisicode w tej sesji czatu.")
             self.io.tool_output(
-                "You could try `/git reset --hard HEAD^` but be aware that this is a destructive"
-                " command!"
+                "Możesz spróbować `/git reset --hard HEAD^`, ale pamiętaj, że to destrukcyjne"
+                " polecenie!"
             )
             return
 
         if len(last_commit.parents) > 1:
             self.io.tool_error(
-                f"The last commit {last_commit.hexsha} has more than 1 parent, can't undo."
+                f"Ostatni commit {last_commit.hexsha} ma więcej niż 1 rodzica, nie można cofnąć."
             )
             return
 
@@ -590,7 +589,7 @@ class Commands:
         for fname in changed_files_last_commit:
             if self.coder.repo.repo.is_dirty(path=fname):
                 self.io.tool_error(
-                    f"The file {fname} has uncommitted changes. Please stash them before undoing."
+                    f"Plik {fname} ma niezatwierdzone zmiany. Zapisz je przed cofnięciem."
                 )
                 return
 
@@ -599,8 +598,8 @@ class Commands:
                 prev_commit.tree[fname]
             except KeyError:
                 self.io.tool_error(
-                    f"The file {fname} was not in the repository in the previous commit. Cannot"
-                    " undo safely."
+                    f"Plik {fname} nie był w repozytorium w poprzednim commicie. Nie można"
+                    " bezpiecznie cofnąć."
                 )
                 return
 
@@ -615,8 +614,7 @@ class Commands:
         if has_origin:
             if local_head == remote_head:
                 self.io.tool_error(
-                    "The last commit has already been pushed to the origin. Undoing is not"
-                    " possible."
+                    "Ostatni commit został już wypchnięty do origin. Cofnięcie nie jest możliwe."
                 )
                 return
 
@@ -631,11 +629,11 @@ class Commands:
                 unrestored.add(file_path)
 
         if unrestored:
-            self.io.tool_error(f"Error restoring {file_path}, aborting undo.")
-            self.io.tool_output("Restored files:")
+            self.io.tool_error(f"Błąd przywracania {file_path}, przerywam cofanie.")
+            self.io.tool_output("Przywrócone pliki:")
             for file in restored:
                 self.io.tool_output(f"  {file}")
-            self.io.tool_output("Unable to restore files:")
+            self.io.tool_output("Nie można przywrócić plików:")
             for file in unrestored:
                 self.io.tool_output(f"  {file}")
             return
@@ -643,32 +641,32 @@ class Commands:
         # Move the HEAD back before the latest commit
         self.coder.repo.repo.git.reset("--soft", "HEAD~1")
 
-        self.io.tool_output(f"Removed: {last_commit_hash} {last_commit_message}")
+        self.io.tool_output(f"Usunięto: {last_commit_hash} {last_commit_message}")
 
         # Get the current HEAD after undo
         current_head_hash = self.coder.repo.get_head_commit_sha(short=True)
         current_head_message = self.coder.repo.get_head_commit_message("(unknown)").strip()
         current_head_message = (current_head_message.splitlines() or [""])[0]
-        self.io.tool_output(f"Now at:  {current_head_hash} {current_head_message}")
+        self.io.tool_output(f"Teraz na: {current_head_hash} {current_head_message}")
 
         if self.coder.main_model.send_undo_reply:
             return prompts.undo_command_reply
 
     def cmd_diff(self, args=""):
-        "Display the diff of changes since the last message"
+        "Wyświetl diff zmian od ostatniej wiadomości"
         try:
             self.raw_cmd_diff(args)
         except ANY_GIT_ERROR as err:
-            self.io.tool_error(f"Unable to complete diff: {err}")
+            self.io.tool_error(f"Nie można wyświetlić diff: {err}")
 
     def raw_cmd_diff(self, args=""):
         if not self.coder.repo:
-            self.io.tool_error("No git repository found.")
+            self.io.tool_error("Nie znaleziono repozytorium git.")
             return
 
         current_head = self.coder.repo.get_head_commit_sha()
         if current_head is None:
-            self.io.tool_error("Unable to get current commit. The repository might be empty.")
+            self.io.tool_error("Nie można pobrać bieżącego commitu. Repozytorium może być puste.")
             return
 
         if len(self.coder.commit_before_message) < 2:
@@ -677,10 +675,10 @@ class Commands:
             commit_before_message = self.coder.commit_before_message[-2]
 
         if not commit_before_message or commit_before_message == current_head:
-            self.io.tool_warning("No changes to display since the last message.")
+            self.io.tool_warning("Brak zmian do wyświetlenia od ostatniej wiadomości.")
             return
 
-        self.io.tool_output(f"Diff since {commit_before_message[:7]}...")
+        self.io.tool_output(f"Diff od {commit_before_message[:7]}...")
 
         if self.coder.pretty:
             run_cmd(f"git diff {commit_before_message}")
@@ -797,7 +795,7 @@ class Commands:
         return res
 
     def cmd_add(self, args):
-        "Add files to the chat so aider can edit them or review them in detail"
+        "Dodaj pliki do czatu, aby cisicode mógł je edytować lub szczegółowo je przejrzeć"
 
         all_matched_files = set()
 
@@ -809,7 +807,7 @@ class Commands:
                 fname = Path(self.coder.root) / word
 
             if self.coder.repo and self.coder.repo.ignored_file(fname):
-                self.io.tool_warning(f"Skipping {fname} due to aiderignore or --subtree-only.")
+                self.io.tool_warning(f"Pomijam {fname} ze względu na aiderignore lub --subtree-only.")
                 continue
 
             if fname.exists():
@@ -826,22 +824,22 @@ class Commands:
 
             if "*" in str(fname) or "?" in str(fname):
                 self.io.tool_error(
-                    f"No match, and cannot create file with wildcard characters: {fname}"
+                    f"Brak dopasowania, nie można utworzyć pliku ze znakami wieloznacznymi: {fname}"
                 )
                 continue
 
             if fname.exists() and fname.is_dir() and self.coder.repo:
-                self.io.tool_error(f"Directory {fname} is not in git.")
-                self.io.tool_output(f"You can add to git with: /git add {fname}")
+                self.io.tool_error(f"Katalog {fname} nie jest w git.")
+                self.io.tool_output(f"Możesz dodać do git: /git add {fname}")
                 continue
 
-            if self.io.confirm_ask(f"No files matched '{word}'. Do you want to create {fname}?"):
+            if self.io.confirm_ask(f"Brak pliku '{word}'. Czy chcesz utworzyć {fname}?"):
                 try:
                     fname.parent.mkdir(parents=True, exist_ok=True)
                     fname.touch()
                     all_matched_files.add(str(fname))
                 except OSError as e:
-                    self.io.tool_error(f"Error creating file {fname}: {e}")
+                    self.io.tool_error(f"Błąd tworzenia pliku {fname}: {e}")
 
         for matched_file in sorted(all_matched_files):
             abs_file_path = self.coder.abs_root_path(matched_file)
@@ -852,7 +850,7 @@ class Commands:
                 and self.coder.auto_commits
             ):
                 self.io.tool_error(
-                    f"Can not add {abs_file_path}, which is not within {self.coder.root}"
+                    f"Nie można dodać {abs_file_path}, który nie jest w {self.coder.root}"
                 )
                 continue
 
@@ -861,11 +859,11 @@ class Commands:
                 and self.coder.repo.git_ignored_file(matched_file)
                 and not self.coder.add_gitignore_files
             ):
-                self.io.tool_error(f"Can't add {matched_file} which is in gitignore")
+                self.io.tool_error(f"Nie można dodać {matched_file}, który jest w gitignore")
                 continue
 
             if abs_file_path in self.coder.abs_fnames:
-                self.io.tool_error(f"{matched_file} is already in the chat as an editable file")
+                self.io.tool_error(f"{matched_file} jest już w czacie jako plik edytowalny")
                 continue
             elif abs_file_path in self.coder.abs_read_only_fnames:
                 # Determine if file can be promoted to editable
@@ -878,28 +876,28 @@ class Commands:
                     self.coder.abs_read_only_fnames.remove(abs_file_path)
                     self.coder.abs_fnames.add(abs_file_path)
                     self.io.tool_output(
-                        f"Moved {matched_file} from read-only to editable files in the chat"
+                        f"Przeniesiono {matched_file} z plików tylko do odczytu do edytowalnych w czacie"
                     )
                 else:
                     self.io.tool_error(
-                        f"Cannot add {matched_file} as it's not part of the repository"
+                        f"Nie można dodać {matched_file} — nie należy do repozytorium"
                     )
             else:
                 if is_image_file(matched_file) and not self.coder.main_model.info.get(
                     "supports_vision"
                 ):
                     self.io.tool_error(
-                        f"Cannot add image file {matched_file} as the"
-                        f" {self.coder.main_model.name} does not support images."
+                        f"Nie można dodać obrazka {matched_file} —"
+                        f" {self.coder.main_model.name} nie obsługuje obrazów."
                     )
                     continue
                 content = self.io.read_text(abs_file_path)
                 if content is None:
-                    self.io.tool_error(f"Unable to read {matched_file}")
+                    self.io.tool_error(f"Nie można odczytać {matched_file}")
                 else:
                     self.coder.abs_fnames.add(abs_file_path)
                     fname = self.coder.get_rel_fname(abs_file_path)
-                    self.io.tool_output(f"Added {fname} to the chat")
+                    self.io.tool_output(f"Dodano {fname} do czatu")
                     self.coder.check_added_files()
 
     def completions_drop(self):
@@ -910,15 +908,15 @@ class Commands:
         return all_files
 
     def cmd_drop(self, args=""):
-        "Remove files from the chat session to free up context space"
+        "Usuń pliki z sesji czatu, aby zwolnić miejsce w kontekście"
 
         if not args.strip():
             if self.original_read_only_fnames:
                 self.io.tool_output(
-                    "Dropping all files from the chat session except originally read-only files."
+                    "Usuwam wszystkie pliki z sesji czatu z wyjątkiem oryginalnie wczytanych tylko do odczytu."
                 )
             else:
-                self.io.tool_output("Dropping all files from the chat session.")
+                self.io.tool_output("Usuwam wszystkie pliki z sesji czatu.")
             self._drop_all_files()
             return
 
@@ -944,7 +942,7 @@ class Commands:
 
             for matched_file in read_only_matched:
                 self.coder.abs_read_only_fnames.remove(matched_file)
-                self.io.tool_output(f"Removed read-only file {matched_file} from the chat")
+                self.io.tool_output(f"Usunięto plik tylko do odczytu {matched_file} z czatu")
 
             # For editable files, use glob if word contains glob chars, otherwise use substring
             if any(c in expanded_word for c in "*?[]"):
@@ -962,10 +960,10 @@ class Commands:
                 abs_fname = self.coder.abs_root_path(matched_file)
                 if abs_fname in self.coder.abs_fnames:
                     self.coder.abs_fnames.remove(abs_fname)
-                    self.io.tool_output(f"Removed {matched_file} from the chat")
+                    self.io.tool_output(f"Usunięto {matched_file} z czatu")
 
     def cmd_git(self, args):
-        "Run a git command (output excluded from chat)"
+        "Uruchom komendę git (wynik wykluczony z czatu)"
         combined_output = None
         try:
             args = "git " + args
@@ -983,7 +981,7 @@ class Commands:
             )
             combined_output = result.stdout
         except Exception as e:
-            self.io.tool_error(f"Error running /git command: {e}")
+            self.io.tool_error(f"Błąd uruchamiania komendy /git: {e}")
 
         if combined_output is None:
             return
@@ -991,7 +989,7 @@ class Commands:
         self.io.tool_output(combined_output)
 
     def cmd_test(self, args):
-        "Run a shell command and add the output to the chat on non-zero exit code"
+        "Uruchom komendę powłoki i dodaj wynik do czatu po niezerowym kodzie wyjścia"
         if not args and self.coder.test_cmd:
             args = self.coder.test_cmd
 
@@ -1011,7 +1009,7 @@ class Commands:
         return errors
 
     def cmd_run(self, args, add_on_nonzero_exit=False):
-        "Run a shell command and optionally add the output to the chat (alias: !)"
+        "Uruchom komendę powłoki i opcjonalnie dodaj wynik do czatu (skrót: !)"
         exit_status, combined_output = run_cmd(
             args, verbose=self.verbose, error_print=self.io.tool_error, cwd=self.coder.root
         )
@@ -1026,12 +1024,12 @@ class Commands:
         if add_on_nonzero_exit:
             add = exit_status != 0
         else:
-            add = self.io.confirm_ask(f"Add {k_tokens:.1f}k tokens of command output to the chat?")
+            add = self.io.confirm_ask(f"Dodać {k_tokens:.1f}k tokenów wyników komendy do czatu?")
 
         if add:
             num_lines = len(combined_output.strip().splitlines())
-            line_plural = "line" if num_lines == 1 else "lines"
-            self.io.tool_output(f"Added {num_lines} {line_plural} of output to the chat.")
+            line_plural = "linia" if num_lines == 1 else "linii"
+            self.io.tool_output(f"Dodano {num_lines} {line_plural} wyników do czatu.")
 
             msg = prompts.run_output.format(
                 command=args,
@@ -1053,16 +1051,16 @@ class Commands:
         return None
 
     def cmd_exit(self, args):
-        "Exit the application"
+        "Wyjdź z aplikacji"
         self.coder.event("exit", reason="/exit")
         sys.exit()
 
     def cmd_quit(self, args):
-        "Exit the application"
+        "Wyjdź z aplikacji"
         self.cmd_exit(args)
 
     def cmd_ls(self, args):
-        "List all known files and indicate which are included in the chat session"
+        "Wylistuj wszystkie znane pliki i wskaż, które są zawarte w sesji czatu"
 
         files = self.coder.get_all_relative_files()
 
@@ -1082,21 +1080,21 @@ class Commands:
             read_only_files.append(rel_file_path)
 
         if not chat_files and not other_files and not read_only_files:
-            self.io.tool_output("\nNo files in chat, git repo, or read-only list.")
+            self.io.tool_output("\nBrak plików w czacie, repozytorium git lub liście tylko do odczytu.")
             return
 
         if other_files:
-            self.io.tool_output("Repo files not in the chat:\n")
+            self.io.tool_output("Pliki repozytorium nie w czacie:\n")
         for file in other_files:
             self.io.tool_output(f"  {file}")
 
         if read_only_files:
-            self.io.tool_output("\nRead-only files:\n")
+            self.io.tool_output("\nPliki tylko do odczytu:\n")
         for file in read_only_files:
             self.io.tool_output(f"  {file}")
 
         if chat_files:
-            self.io.tool_output("\nFiles in chat:\n")
+            self.io.tool_output("\nPliki w czacie:\n")
         for file in chat_files:
             self.io.tool_output(f"  {file}")
 
@@ -1112,12 +1110,12 @@ class Commands:
                 description = cmd_method.__doc__
                 self.io.tool_output(f"{cmd} {description}")
             else:
-                self.io.tool_output(f"{cmd} No description available.")
+                self.io.tool_output(f"{cmd} Brak dostępnego opisu.")
         self.io.tool_output()
-        self.io.tool_output("Use `/help <question>` to ask questions about how to use aider.")
+        self.io.tool_output("Użyj `/help <pytanie>` aby zadać pytania dotyczące korzystania z cisicode.")
 
     def cmd_help(self, args):
-        "Ask questions about aider"
+        "Zadaj pytania dotyczące cisicode"
 
         if not args.strip():
             self.basic_help()
@@ -1129,7 +1127,7 @@ class Commands:
         if not self.help:
             res = install_help_extra(self.io)
             if not res:
-                self.io.tool_error("Unable to initialize interactive help.")
+                self.io.tool_error("Nie można zainicjalizować interaktywnej pomocy.")
                 return
 
             self.help = Help()
@@ -1144,7 +1142,7 @@ class Commands:
         )
         user_msg = self.help.ask(args)
         user_msg += """
-# Announcement lines from when this session of aider was launched:
+# Komunikaty startowe z tej sesji cisicode:
 
 """
         user_msg += "\n".join(self.coder.get_announcements()) + "\n"
@@ -1180,19 +1178,19 @@ class Commands:
         raise CommandCompletionException()
 
     def cmd_ask(self, args):
-        """Ask questions about the code base without editing any files. If no prompt provided, switches to ask mode."""  # noqa
+        """Zadaj pytania dotyczące kodu bez edytowania plików. Jeśli nie podano zapytania, przełącza w tryb zapytań."""  # noqa
         return self._generic_chat_command(args, "ask")
 
     def cmd_code(self, args):
-        """Ask for changes to your code. If no prompt provided, switches to code mode."""  # noqa
+        """Poproś o zmiany w kodzie. Jeśli nie podano zapytania, przełącza w tryb kodu."""  # noqa
         return self._generic_chat_command(args, self.coder.main_model.edit_format)
 
     def cmd_architect(self, args):
-        """Enter architect/editor mode using 2 different models. If no prompt provided, switches to architect/editor mode."""  # noqa
+        """Wejdź w tryb architekt/edytor używając 2 różnych modeli. Jeśli nie podano zapytania, przełącza w tryb architekta/edytora."""  # noqa
         return self._generic_chat_command(args, "architect")
 
     def cmd_context(self, args):
-        """Enter context mode to see surrounding code context. If no prompt provided, switches to context mode."""  # noqa
+        """Wejdź w tryb kontekstu, aby zobaczyć otaczający kontekst kodu. Jeśli nie podano zapytania, przełącza w tryb kontekstu."""  # noqa
         return self._generic_chat_command(args, "context", placeholder=args.strip() or None)
 
     def _generic_chat_command(self, args, edit_format, placeholder=None):
@@ -1242,11 +1240,11 @@ class Commands:
         return res
 
     def cmd_voice(self, args):
-        "Record and transcribe voice input"
+        "Nagraj i transkrybuj wejście głosowe"
 
         if not self.voice:
             if "OPENAI_API_KEY" not in os.environ:
-                self.io.tool_error("To use /voice you must provide an OpenAI API key.")
+                self.io.tool_error("Aby użyć /voice musisz podać klucz API OpenAI.")
                 return
             try:
                 self.voice = voice.Voice(
@@ -1254,14 +1252,14 @@ class Commands:
                 )
             except voice.SoundDeviceError:
                 self.io.tool_error(
-                    "Unable to import `sounddevice` and/or `soundfile`, is portaudio installed?"
+                    "Nie można zaimportować `sounddevice` i/lub `soundfile`, czy portaudio jest zainstalowany?"
                 )
                 return
 
         try:
             text = self.voice.record_and_transcribe(None, language=self.voice_language)
         except litellm.OpenAIError as err:
-            self.io.tool_error(f"Unable to use OpenAI whisper model: {err}")
+            self.io.tool_error(f"Nie można użyć modelu OpenAI whisper: {err}")
             return
 
         if text:
@@ -1297,10 +1295,10 @@ class Commands:
                 )
                 if existing_file:
                     self.coder.abs_fnames.remove(existing_file)
-                    self.io.tool_output(f"Replaced existing image in the chat: {existing_file}")
+                    self.io.tool_output(f"Zastąpiono istniejący obraz w czacie: {existing_file}")
 
                 self.coder.abs_fnames.add(str(abs_file_path))
-                self.io.tool_output(f"Added clipboard image to the chat: {abs_file_path}")
+                self.io.tool_output(f"Dodano obraz ze schowka do czatu: {abs_file_path}")
                 self.coder.check_added_files()
 
                 return
@@ -1311,21 +1309,21 @@ class Commands:
                 self.io.tool_output(text)
                 return text
 
-            self.io.tool_error("No image or text content found in clipboard.")
+            self.io.tool_error("Brak obrazu lub tekstu w schowku.")
             return
 
         except Exception as e:
-            self.io.tool_error(f"Error processing clipboard content: {e}")
+            self.io.tool_error(f"Błąd przetwarzania zawartości schowka: {e}")
 
     def cmd_read_only(self, args):
-        "Add files to the chat that are for reference only, or turn added files to read-only"
+        "Dodaj pliki do czatu jako referencja, lub zmień dodane pliki na tylko do odczytu"
         if not args.strip():
             # Convert all files in chat to read-only
             for fname in list(self.coder.abs_fnames):
                 self.coder.abs_fnames.remove(fname)
                 self.coder.abs_read_only_fnames.add(fname)
                 rel_fname = self.coder.get_rel_fname(fname)
-                self.io.tool_output(f"Converted {rel_fname} to read-only")
+                self.io.tool_output(f"Zmieniono {rel_fname} na tylko do odczytu")
             return
 
         filenames = parse_quoted_filenames(args)
@@ -1353,7 +1351,7 @@ class Commands:
                     matches = list(Path(self.coder.root).glob(expanded_pattern))
 
             if not matches:
-                self.io.tool_error(f"No matches found for: {pattern}")
+                self.io.tool_error(f"Brak dopasowań dla: {pattern}")
             else:
                 all_paths.extend(matches)
 
@@ -1365,28 +1363,28 @@ class Commands:
             elif os.path.isdir(abs_path):
                 self._add_read_only_directory(abs_path, path)
             else:
-                self.io.tool_error(f"Not a file or directory: {abs_path}")
+                self.io.tool_error(f"Nie jest plikiem ani katalogiem: {abs_path}")
 
     def _add_read_only_file(self, abs_path, original_name):
         if is_image_file(original_name) and not self.coder.main_model.info.get("supports_vision"):
             self.io.tool_error(
-                f"Cannot add image file {original_name} as the"
-                f" {self.coder.main_model.name} does not support images."
+                f"Nie można dodać obrazu {original_name} —"
+                f" {self.coder.main_model.name} nie obsługuje obrazów."
             )
             return
 
         if abs_path in self.coder.abs_read_only_fnames:
-            self.io.tool_error(f"{original_name} is already in the chat as a read-only file")
+            self.io.tool_error(f"{original_name} jest już w czacie jako plik tylko do odczytu")
             return
         elif abs_path in self.coder.abs_fnames:
             self.coder.abs_fnames.remove(abs_path)
             self.coder.abs_read_only_fnames.add(abs_path)
             self.io.tool_output(
-                f"Moved {original_name} from editable to read-only files in the chat"
+                f"Przeniesiono {original_name} z plików edytowalnych do tylko do odczytu w czacie"
             )
         else:
             self.coder.abs_read_only_fnames.add(abs_path)
-            self.io.tool_output(f"Added {original_name} to read-only files.")
+            self.io.tool_output(f"Dodano {original_name} do plików tylko do odczytu.")
 
     def _add_read_only_directory(self, abs_path, original_name):
         added_files = 0
@@ -1402,27 +1400,27 @@ class Commands:
 
         if added_files > 0:
             self.io.tool_output(
-                f"Added {added_files} files from directory {original_name} to read-only files."
+                f"Dodano {added_files} pliki(ów) z katalogu {original_name} do plików tylko do odczytu."
             )
         else:
-            self.io.tool_output(f"No new files added from directory {original_name}.")
+            self.io.tool_output(f"Brak nowych plików dodanych z katalogu {original_name}.")
 
     def cmd_map(self, args):
-        "Print out the current repository map"
+        "Wydrukuj bieżącą mapę repozytorium"
         repo_map = self.coder.get_repo_map()
         if repo_map:
             self.io.tool_output(repo_map)
         else:
-            self.io.tool_output("No repository map available.")
+            self.io.tool_output("Brak dostępnej mapy repozytorium.")
 
     def cmd_map_refresh(self, args):
-        "Force a refresh of the repository map"
+        "Wymuś odświeżenie mapy repozytorium"
         repo_map = self.coder.get_repo_map(force_refresh=True)
         if repo_map:
-            self.io.tool_output("The repo map has been refreshed, use /map to view it.")
+            self.io.tool_output("Mapa repozytorium została odświeżona, użyj /map aby ją wyświetlić.")
 
     def cmd_settings(self, args):
-        "Print out the current settings"
+        "Wydrukuj bieżące ustawienia"
         settings = format_settings(self.parser, self.args)
         announcements = "\n".join(self.coder.get_announcements())
 
@@ -1455,19 +1453,19 @@ class Commands:
         return self.completions_raw_read_only(document, complete_event)
 
     def cmd_load(self, args):
-        "Load and execute commands from a file"
+        "Załaduj i wykonaj komendy z pliku"
         if not args.strip():
-            self.io.tool_error("Please provide a filename containing commands to load.")
+            self.io.tool_error("Podaj nazwę pliku zawierającego komendy do załadowania.")
             return
 
         try:
             with open(args.strip(), "r", encoding=self.io.encoding, errors="replace") as f:
                 commands = f.readlines()
         except FileNotFoundError:
-            self.io.tool_error(f"File not found: {args}")
+            self.io.tool_error(f"Plik nie znaleziony: {args}")
             return
         except Exception as e:
-            self.io.tool_error(f"Error reading file: {e}")
+            self.io.tool_error(f"Błąd odczytu pliku: {e}")
             return
 
         for cmd in commands:
@@ -1475,21 +1473,21 @@ class Commands:
             if not cmd or cmd.startswith("#"):
                 continue
 
-            self.io.tool_output(f"\nExecuting: {cmd}")
+            self.io.tool_output(f"\nWykonuję: {cmd}")
             try:
                 self.run(cmd)
             except SwitchCoder:
                 self.io.tool_error(
-                    f"Command '{cmd}' is only supported in interactive mode, skipping."
+                    f"Komenda '{cmd}' jest obsługiwana tylko w trybie interaktywnym, pomijam."
                 )
 
     def completions_raw_save(self, document, complete_event):
         return self.completions_raw_read_only(document, complete_event)
 
     def cmd_save(self, args):
-        "Save commands to a file that can reconstruct the current chat session's files"
+        "Zapisz komendy do pliku, który może odtworzyć pliki bieżącej sesji czatu"
         if not args.strip():
-            self.io.tool_error("Please provide a filename to save the commands to.")
+            self.io.tool_error("Podaj nazwę pliku, do którego zapisać komendy.")
             return
 
         try:
@@ -1509,21 +1507,21 @@ class Commands:
                     else:
                         f.write(f"/read-only {fname}\n")
 
-            self.io.tool_output(f"Saved commands to {args.strip()}")
+            self.io.tool_output(f"Zapisano komendy do {args.strip()}")
         except Exception as e:
-            self.io.tool_error(f"Error saving commands to file: {e}")
+            self.io.tool_error(f"Błąd zapisywania komend do pliku: {e}")
 
     def cmd_multiline_mode(self, args):
-        "Toggle multiline mode (swaps behavior of Enter and Meta+Enter)"
+        "Przełącz tryb wieloliniowy (zamienia zachowanie Enter i Meta+Enter)"
         self.io.toggle_multiline_mode()
 
     def cmd_copy(self, args):
-        "Copy the last assistant message to the clipboard"
+        "Kopiuj ostatnią wiadomość asystenta do schowka"
         all_messages = self.coder.done_messages + self.coder.cur_messages
         assistant_messages = [msg for msg in reversed(all_messages) if msg["role"] == "assistant"]
 
         if not assistant_messages:
-            self.io.tool_error("No assistant messages found to copy.")
+            self.io.tool_error("Brak wiadomości asystenta do skopiowania.")
             return
 
         last_assistant_message = assistant_messages[0]["content"]
@@ -1535,17 +1533,17 @@ class Commands:
                 if len(last_assistant_message) > 50
                 else last_assistant_message
             )
-            self.io.tool_output(f"Copied last assistant message to clipboard. Preview: {preview}")
+            self.io.tool_output(f"Skopiowano ostatnią wiadomość asystenta do schowka. Podgląd: {preview}")
         except pyperclip.PyperclipException as e:
-            self.io.tool_error(f"Failed to copy to clipboard: {str(e)}")
+            self.io.tool_error(f"Nie można skopiować do schowka: {str(e)}")
             self.io.tool_output(
-                "You may need to install xclip or xsel on Linux, or pbcopy on macOS."
+                "Być może musisz zainstalować xclip lub xsel na Linux, lub pbcopy na macOS."
             )
         except Exception as e:
-            self.io.tool_error(f"An unexpected error occurred while copying to clipboard: {str(e)}")
+            self.io.tool_error(f"Nieoczekiwany błąd podczas kopiowania do schowka: {str(e)}")
 
     def cmd_report(self, args):
-        "Report a problem by opening a GitHub Issue"
+        "Zgłoś problem otwierając zgłoszenie na GitHub"
         from aider.report import report_github_issue
 
         announcements = "\n".join(self.coder.get_announcements())
@@ -1559,29 +1557,29 @@ class Commands:
         report_github_issue(issue_text, title=title, confirm=False)
 
     def cmd_editor(self, initial_content=""):
-        "Open an editor to write a prompt"
+        "Otwórz edytor, aby napisać zapytanie"
 
         user_input = pipe_editor(initial_content, suffix="md", editor=self.editor)
         if user_input.strip():
             self.io.set_placeholder(user_input.rstrip())
 
     def cmd_edit(self, args=""):
-        "Alias for /editor: Open an editor to write a prompt"
+        "Alias dla /editor: Otwórz edytor, aby napisać zapytanie"
         return self.cmd_editor(args)
 
     def cmd_think_tokens(self, args):
-        """Set the thinking token budget, eg: 8096, 8k, 10.5k, 0.5M, or 0 to disable."""
+        """Ustaw budżet tokenów dla myślenia, np.: 8096, 8k, 10.5k, 0.5M, lub 0 aby wyłączyć."""
         model = self.coder.main_model
 
         if not args.strip():
             # Display current value if no args are provided
             formatted_budget = model.get_thinking_tokens()
             if formatted_budget is None:
-                self.io.tool_output("Thinking tokens are not currently set.")
+                self.io.tool_output("Budżet tokenów myślenia nie jest ustawiony.")
             else:
                 budget = model.get_raw_thinking_tokens()
                 self.io.tool_output(
-                    f"Current thinking token budget: {budget:,} tokens ({formatted_budget})."
+                    f"Bieżący budżet tokenów myślenia: {budget:,} tokenów ({formatted_budget})."
                 )
             return
 
@@ -1590,12 +1588,12 @@ class Commands:
 
         # Handle the special case of 0 to disable thinking tokens
         if value == "0":
-            self.io.tool_output("Thinking tokens disabled.")
+            self.io.tool_output("Tokeny myślenia wyłączone.")
         else:
             formatted_budget = model.get_thinking_tokens()
             budget = model.get_raw_thinking_tokens()
             self.io.tool_output(
-                f"Set thinking token budget to {budget:,} tokens ({formatted_budget})."
+                f"Ustawiono budżet tokenów myślenia na {budget:,} tokenów ({formatted_budget})."
             )
 
         self.io.tool_output()

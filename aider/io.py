@@ -40,7 +40,7 @@ from .editor import pipe_editor
 from .utils import is_image_file
 
 # Constants
-NOTIFICATION_MESSAGE = "Aider is waiting for your input"
+NOTIFICATION_MESSAGE = "CisiCode czeka na Twoje polecenie"
 
 
 def ensure_hash_prefix(color):
@@ -312,7 +312,7 @@ class InputOutput:
             try:
                 Path(self.input_history_file).parent.mkdir(parents=True, exist_ok=True)
             except (PermissionError, OSError) as e:
-                self.tool_warning(f"Could not create directory for input history: {e}")
+                self.tool_warning(f"Nie można utworzyć katalogu dla historii wejścia: {e}")
                 self.input_history_file = None
         self.llm_history_file = llm_history_file
         if chat_history_file is not None:
@@ -333,7 +333,7 @@ class InputOutput:
         self.dry_run = dry_run
 
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.append_chat_history(f"\n# aider chat started at {current_time}\n\n")
+        self.append_chat_history(f"\n# czat cisicode rozpoczął się o {current_time}\n\n")
 
         self.prompt_session = None
         self.is_dumb_terminal = is_dumb_terminal()
@@ -359,11 +359,11 @@ class InputOutput:
                 self.console = Console()  # pretty console
             except Exception as err:
                 self.console = Console(force_terminal=False, no_color=True)
-                self.tool_error(f"Can't initialize prompt toolkit: {err}")  # non-pretty
+                self.tool_error(f"Nie można zainicjować prompt toolkit: {err}")  # non-pretty
         else:
             self.console = Console(force_terminal=False, no_color=True)  # non-pretty
             if self.is_dumb_terminal:
-                self.tool_output("Detected dumb terminal, disabling fancy input and pretty output.")
+                self.tool_output("Wykryto prosty terminal, wyłączam ładne wprowadzanie i formatowanie tekstu.")
 
         self.file_watcher = file_watcher
         self.root = root
@@ -392,8 +392,8 @@ class InputOutput:
                     RichStyle(color=color_value)
                 except ColorParseError as e:
                     self.console.print(
-                        "[bold red]Warning:[/bold red] Invalid configuration for"
-                        f" {attr_name}: '{color_value}'. {e}. Disabling this color."
+                        "[bold red]Ostrzeżenie:[/bold red] Nieprawidłowa konfiguracja dla"
+                        f" {attr_name}: '{color_value}'. {e}. Wyłączam ten kolor."
                     )
                     setattr(self, attr_name, None)  # Reset invalid color to None
 
@@ -438,13 +438,13 @@ class InputOutput:
                 encoded_string = base64.b64encode(image_file.read())
                 return encoded_string.decode("utf-8")
         except OSError as err:
-            self.tool_error(f"{filename}: unable to read: {err}")
+            self.tool_error(f"{filename}: nie można odczytać: {err}")
             return
         except FileNotFoundError:
-            self.tool_error(f"{filename}: file not found error")
+            self.tool_error(f"{filename}: nie znaleziono pliku")
             return
         except IsADirectoryError:
-            self.tool_error(f"{filename}: is a directory")
+            self.tool_error(f"{filename}: jest katalogiem")
             return
         except Exception as e:
             self.tool_error(f"{filename}: {e}")
@@ -459,20 +459,20 @@ class InputOutput:
                 return f.read()
         except FileNotFoundError:
             if not silent:
-                self.tool_error(f"{filename}: file not found error")
+                self.tool_error(f"{filename}: nie znaleziono pliku")
             return
         except IsADirectoryError:
             if not silent:
-                self.tool_error(f"{filename}: is a directory")
+                self.tool_error(f"{filename}: jest katalogiem")
             return
         except OSError as err:
             if not silent:
-                self.tool_error(f"{filename}: unable to read: {err}")
+                self.tool_error(f"{filename}: nie można odczytać: {err}")
             return
         except UnicodeError as e:
             if not silent:
                 self.tool_error(f"{filename}: {e}")
-                self.tool_error("Use --encoding to set the unicode encoding.")
+                self.tool_error("Użyj --encoding, aby ustawić kodowanie Unicode.")
             return
 
     def write_text(self, filename, content, max_retries=5, initial_delay=0.1):
@@ -499,11 +499,11 @@ class InputOutput:
                     delay *= 2  # Exponential backoff
                 else:
                     self.tool_error(
-                        f"Unable to write file {filename} after {max_retries} attempts: {err}"
+                        f"Nie można zapisać pliku {filename} po {max_retries} próbach: {err}"
                     )
                     raise
             except OSError as err:
-                self.tool_error(f"Unable to write file {filename}: {err}")
+                self.tool_error(f"Nie można zapisać pliku {filename}: {err}")
                 raise
 
     def rule(self):
@@ -742,7 +742,7 @@ class InputOutput:
             if self.prompt_session and self.prompt_session.history:
                 self.prompt_session.history.append_string(inp)
         except OSError as err:
-            self.tool_warning(f"Unable to write to input history file: {err}")
+            self.tool_warning(f"Nie można zapisać do pliku historii wejścia: {err}")
 
     def get_input_history(self):
         if not self.input_history_file:
@@ -761,7 +761,7 @@ class InputOutput:
                 log_file.write(f"{role.upper()} {timestamp}\n")
                 log_file.write(content + "\n")
         except (PermissionError, OSError) as err:
-            self.tool_warning(f"Unable to write to llm history file {self.llm_history_file}: {err}")
+            self.tool_warning(f"Nie można zapisać do pliku historii llm {self.llm_history_file}: {err}")
             self.llm_history_file = None
 
     def display_user_input(self, inp):
@@ -794,7 +794,7 @@ class InputOutput:
         hist = "\n" + content.strip() + "\n\n"
         self.append_chat_history(hist)
 
-    def offer_url(self, url, prompt="Open URL for more info?", allow_never=True):
+    def offer_url(self, url, prompt="Otworzyć URL po więcej informacji?", allow_never=True):
         """Offer to open a URL in the browser, returns True if opened."""
         if url in self.never_prompts:
             return False
@@ -828,20 +828,20 @@ class InputOutput:
         if group:
             allow_never = True
 
-        valid_responses = ["yes", "no", "skip", "all"]
-        options = " (Y)es/(N)o"
+        valid_responses = ["tak", "nie", "pomiń", "wszystkie"]
+        options = " (T)ak/(N)ie"
         if group:
             if not explicit_yes_required:
-                options += "/(A)ll"
-            options += "/(S)kip all"
+                options += "/(W)szystkie"
+            options += "/(P)omiń wszystkie"
         if allow_never:
-            options += "/(D)on't ask again"
-            valid_responses.append("don't")
+            options += "/(Z)apamiętaj i nie pytaj"
+            valid_responses.append("zapamiętaj")
 
-        if default.lower().startswith("y"):
-            question += options + " [Yes]: "
+        if default.lower().startswith("y") or default.lower().startswith("t"):
+            question += options + " [Tak]: "
         elif default.lower().startswith("n"):
-            question += options + " [No]: "
+            question += options + " [Nie]: "
         else:
             question += options + f" [{default}]: "
 
@@ -864,7 +864,7 @@ class InputOutput:
             return text.lower() in valid_responses
 
         if self.yes is True:
-            res = "n" if explicit_yes_required else "y"
+            res = "n" if explicit_yes_required else "t"
         elif self.yes is False:
             res = "n"
         elif group and group.preference:
@@ -894,24 +894,26 @@ class InputOutput:
                 if good:
                     break
 
-                error_message = f"Please answer with one of: {', '.join(valid_responses)}"
+                error_message = f"Proszę odpowiedzieć jedną z: {', '.join(valid_responses)}"
                 self.tool_error(error_message)
 
         res = res.lower()[0]
+        # Map back English defaults if they were used (e.g., 'y' -> 't')
+        if res == 'y': res = 't'
 
-        if res == "d" and allow_never:
+        if res == "z" and allow_never:
             self.never_prompts.add(question_id)
             hist = f"{question.strip()} {res}"
             self.append_chat_history(hist, linebreak=True, blockquote=True)
             return False
 
         if explicit_yes_required:
-            is_yes = res == "y"
+            is_yes = res == "t"
         else:
-            is_yes = res in ("y", "a")
+            is_yes = res in ("t", "w")
 
-        is_all = res == "a" and group is not None and not explicit_yes_required
-        is_skip = res == "s" and group is not None
+        is_all = res == "w" and group is not None and not explicit_yes_required
+        is_skip = res == "p" and group is not None
 
         if group:
             if is_all and not explicit_yes_required:
@@ -1022,7 +1024,7 @@ class InputOutput:
 
     def assistant_output(self, message, pretty=None):
         if not message:
-            self.tool_warning("Empty response received from LLM. Check your provider account?")
+            self.tool_warning("Otrzymano pustą odpowiedź od LLM. Sprawdź konto na swoim dostawcy?")
             return
 
         show_resp = message
@@ -1095,9 +1097,9 @@ class InputOutput:
                     )
                     if result.returncode != 0 and result.stderr:
                         error_msg = result.stderr.decode("utf-8", errors="replace")
-                        self.tool_warning(f"Failed to run notifications command: {error_msg}")
+                        self.tool_warning(f"Nie udało się uruchomić polecenia powiadomienia: {error_msg}")
                 except Exception as e:
-                    self.tool_warning(f"Failed to run notifications command: {e}")
+                    self.tool_warning(f"Nie udało się uruchomić polecenia powiadomienia: {e}")
             else:
                 print("\a", end="", flush=True)  # Ring the bell
             self.bell_on_next_input = False  # Clear the flag
@@ -1107,11 +1109,11 @@ class InputOutput:
         self.multiline_mode = not self.multiline_mode
         if self.multiline_mode:
             self.tool_output(
-                "Multiline mode: Enabled. Enter inserts newline, Alt-Enter submits text"
+                "Tryb wieloliniowy: Włączony. Enter wstawia nową linię, Alt-Enter zatwierdza tekst"
             )
         else:
             self.tool_output(
-                "Multiline mode: Disabled. Alt-Enter inserts newline, Enter submits text"
+                "Tryb wieloliniowy: Wyłączony. Alt-Enter wstawia nową linię, Enter zatwierdza tekst"
             )
 
     def append_chat_history(self, text, linebreak=False, blockquote=False, strip=True):
@@ -1131,7 +1133,7 @@ class InputOutput:
                 with self.chat_history_file.open("a", encoding=self.encoding, errors="ignore") as f:
                     f.write(text)
             except (PermissionError, OSError) as err:
-                print(f"Warning: Unable to write to chat history file {self.chat_history_file}.")
+                print(f"Ostrzeżenie: Nie można zapisać do pliku historii czatu {self.chat_history_file}.")
                 print(err)
                 self.chat_history_file = None  # Disable further attempts to write
 
@@ -1139,7 +1141,7 @@ class InputOutput:
         if not self.pretty:
             read_only_files = []
             for full_path in sorted(rel_read_only_fnames or []):
-                read_only_files.append(f"{full_path} (read only)")
+                read_only_files.append(f"{full_path} (tylko do odczytu)")
 
             editable_files = []
             for full_path in sorted(rel_fnames):
@@ -1162,7 +1164,7 @@ class InputOutput:
                 abs_path = os.path.abspath(os.path.join(self.root, rel_path))
                 ro_paths.append(Text(abs_path if len(abs_path) < len(rel_path) else rel_path))
 
-            files_with_label = [Text("Readonly:")] + ro_paths
+            files_with_label = [Text("Tylko do odczytu:")] + ro_paths
             read_only_output = StringIO()
             Console(file=read_only_output, force_terminal=False).print(Columns(files_with_label))
             read_only_lines = read_only_output.getvalue().splitlines()
@@ -1172,7 +1174,7 @@ class InputOutput:
             text_editable_files = [Text(f) for f in editable_files]
             files_with_label = text_editable_files
             if read_only_files:
-                files_with_label = [Text("Editable:")] + text_editable_files
+                files_with_label = [Text("Edytowalne:")] + text_editable_files
                 editable_output = StringIO()
                 Console(file=editable_output, force_terminal=False).print(Columns(files_with_label))
                 editable_lines = editable_output.getvalue().splitlines()

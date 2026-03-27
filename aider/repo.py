@@ -249,7 +249,7 @@ class GitRepo:
             model_name = "unknown-model"
             if coder and hasattr(coder, "main_model") and coder.main_model.name:
                 model_name = coder.main_model.name
-            commit_message_trailer = f"\n\nCo-authored-by: aider ({model_name}) <aider@aider.chat>"
+            commit_message_trailer = f"\n\nCo-authored-by: cisicode ({model_name}) <cisicode@cisicode.local>"
 
         # Determine if author/committer names should be modified
         # Author modification applies only to aider edits.
@@ -270,7 +270,7 @@ class GitRepo:
             commit_message = "(no commit message provided)"
 
         if prefix_commit_message:
-            commit_message = "aider: " + commit_message
+            commit_message = "cisicode: " + commit_message
 
         full_commit_message = commit_message + commit_message_trailer
 
@@ -291,7 +291,7 @@ class GitRepo:
         original_user_name = self.repo.git.config("--get", "user.name")
         original_committer_name_env = os.environ.get("GIT_COMMITTER_NAME")
         original_author_name_env = os.environ.get("GIT_AUTHOR_NAME")
-        committer_name = f"{original_user_name} (aider)"
+        committer_name = f"{original_user_name} (cisicode)"
 
         try:
             # Use context managers to handle environment variables

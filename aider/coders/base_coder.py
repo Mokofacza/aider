@@ -213,7 +213,7 @@ class Coder:
         weak_model = main_model.weak_model
 
         if weak_model is not main_model:
-            prefix = "Main model"
+            prefix = "Główny model"
         else:
             prefix = "Model"
 
@@ -222,29 +222,29 @@ class Coder:
         # Check for thinking token budget
         thinking_tokens = main_model.get_thinking_tokens()
         if thinking_tokens:
-            output += f", {thinking_tokens} think tokens"
+            output += f", {thinking_tokens} tokenów myślenia"
 
         # Check for reasoning effort
         reasoning_effort = main_model.get_reasoning_effort()
         if reasoning_effort:
-            output += f", reasoning {reasoning_effort}"
+            output += f", rozumowanie {reasoning_effort}"
 
         if self.add_cache_headers or main_model.caches_by_default:
-            output += ", prompt cache"
+            output += ", pamięć podręczna promptów"
         if main_model.info.get("supports_assistant_prefill"):
-            output += ", infinite output"
+            output += ", nieskończony wynik"
 
         lines.append(output)
 
         if self.edit_format == "architect":
             output = (
-                f"Editor model: {main_model.editor_model.name} with"
-                f" {main_model.editor_edit_format} edit format"
+                f"Model edytora: {main_model.editor_model.name} z"
+                f" formatem edycji {main_model.editor_edit_format}"
             )
             lines.append(output)
 
         if weak_model is not main_model:
-            output = f"Weak model: {weak_model.name}"
+            output = f"Słaby model: {weak_model.name}"
             lines.append(output)
 
         # Repo
@@ -252,45 +252,45 @@ class Coder:
             rel_repo_dir = self.repo.get_rel_repo_dir()
             num_files = len(self.repo.get_tracked_files())
 
-            lines.append(f"Git repo: {rel_repo_dir} with {num_files:,} files")
+            lines.append(f"Repozytorium Git: {rel_repo_dir} z {num_files:,} plikami")
             if num_files > 1000:
                 lines.append(
-                    "Warning: For large repos, consider using --subtree-only and .aiderignore"
+                    "Ostrzeżenie: Dla dużych repozytoriów rozważ użycie --subtree-only i .cisicodeignore"
                 )
-                lines.append(f"See: {urls.large_repos}")
+                lines.append(f"Patrz: {urls.large_repos}")
         else:
-            lines.append("Git repo: none")
+            lines.append("Repozytorium Git: brak")
 
         # Repo-map
         if self.repo_map:
             map_tokens = self.repo_map.max_map_tokens
             if map_tokens > 0:
                 refresh = self.repo_map.refresh
-                lines.append(f"Repo-map: using {map_tokens} tokens, {refresh} refresh")
+                lines.append(f"Mapa-repo: używam {map_tokens} tokenów, odświeżanie {refresh}")
                 max_map_tokens = self.main_model.get_repo_map_tokens() * 2
                 if map_tokens > max_map_tokens:
                     lines.append(
-                        f"Warning: map-tokens > {max_map_tokens} is not recommended. Too much"
-                        " irrelevant code can confuse LLMs."
+                        f"Ostrzeżenie: map-tokens > {max_map_tokens} nie jest zalecane. Zbyt dużo"
+                        " nieistotnego kodu może mylić LLM."
                     )
             else:
-                lines.append("Repo-map: disabled because map_tokens == 0")
+                lines.append("Mapa-repo: wyłączona, bo map_tokens == 0")
         else:
-            lines.append("Repo-map: disabled")
+            lines.append("Mapa-repo: wyłączona")
 
         # Files
         for fname in self.get_inchat_relative_files():
-            lines.append(f"Added {fname} to the chat.")
+            lines.append(f"Dodano {fname} do czatu.")
 
         for fname in self.abs_read_only_fnames:
             rel_fname = self.get_rel_fname(fname)
-            lines.append(f"Added {rel_fname} to the chat (read-only).")
+            lines.append(f"Dodano {rel_fname} do czatu (tylko do odczytu).")
 
         if self.done_messages:
-            lines.append("Restored previous conversation history.")
+            lines.append("Przywrócono poprzednią historię rozmowy.")
 
         if self.io.multiline_mode:
-            lines.append("Multiline mode: Enabled. Enter inserts newline, Alt-Enter submits text")
+            lines.append("Tryb wieloliniowy: Włączony. Enter wstawia nową linię, Alt-Enter zatwierdza")
 
         return lines
 
@@ -449,22 +449,22 @@ class Coder:
         for fname in fnames:
             fname = Path(fname)
             if self.repo and self.repo.git_ignored_file(fname) and not self.add_gitignore_files:
-                self.io.tool_warning(f"Skipping {fname} that matches gitignore spec.")
+                self.io.tool_warning(f"Pomijam {fname} zgodny z gitignore.")
                 continue
 
             if self.repo and self.repo.ignored_file(fname):
-                self.io.tool_warning(f"Skipping {fname} that matches aiderignore spec.")
+                self.io.tool_warning(f"Pomijam {fname} zgodny ze specyfikacją aiderignore.")
                 continue
 
             if not fname.exists():
                 if utils.touch_file(fname):
-                    self.io.tool_output(f"Creating empty file {fname}")
+                    self.io.tool_output(f"Tworzenie pustego pliku {fname}")
                 else:
-                    self.io.tool_warning(f"Can not create {fname}, skipping.")
+                    self.io.tool_warning(f"Nie można utworzyć {fname}, pomijam.")
                     continue
 
             if not fname.is_file():
-                self.io.tool_warning(f"Skipping {fname} that is not a normal file.")
+                self.io.tool_warning(f"Pomijam {fname}, który nie jest normalnym plikiem.")
                 continue
 
             fname = str(fname.resolve())
@@ -482,7 +482,7 @@ class Coder:
                 if os.path.exists(abs_fname):
                     self.abs_read_only_fnames.add(abs_fname)
                 else:
-                    self.io.tool_warning(f"Error: Read-only file {fname} does not exist. Skipping.")
+                    self.io.tool_warning(f"Błąd: Plik tylko do odczytu {fname} nie istnieje. Pomijam.")
 
         if map_tokens is None:
             use_repo_map = main_model.use_repo_map
@@ -601,7 +601,7 @@ class Coder:
 
             if content is None:
                 relative_fname = self.get_rel_fname(fname)
-                self.io.tool_warning(f"Dropping {relative_fname} from the chat.")
+                self.io.tool_warning(f"Usuwam {relative_fname} z czatu.")
                 self.abs_fnames.remove(fname)
             else:
                 yield fname, content
@@ -628,7 +628,7 @@ class Coder:
         else:
             self.fence = self.fences[0]
             self.io.tool_warning(
-                "Unable to find a fencing strategy! Falling back to:"
+                "Nie można znaleźć strategii ogrodzenia! Powrót do:"
                 f" {self.fence[0]}...{self.fence[1]}"
             )
 
@@ -937,7 +937,7 @@ class Coder:
                 break
 
             if self.num_reflections >= self.max_reflections:
-                self.io.tool_warning(f"Only {self.max_reflections} reflections allowed, stopping.")
+                self.io.tool_warning(f"Dozwolone tylko {self.max_reflections} refleksji, zatrzymuję.")
                 return
 
             self.num_reflections += 1
@@ -973,7 +973,7 @@ class Coder:
             if url not in self.rejected_urls:
                 url = url.rstrip(".',\"")
                 if self.io.confirm_ask(
-                    "Add URL to the chat?", subject=url, group=group, allow_never=True
+                    "Dodać URL do czatu?", subject=url, group=group, allow_never=True
                 ):
                     inp += "\n\n"
                     inp += self.commands.cmd_web(url, return_content=True)
@@ -990,11 +990,11 @@ class Coder:
 
         thresh = 2  # seconds
         if self.last_keyboard_interrupt and now - self.last_keyboard_interrupt < thresh:
-            self.io.tool_warning("\n\n^C KeyboardInterrupt")
+            self.io.tool_warning("\n\n^C Przerwanie klawiatury")
             self.event("exit", reason="Control-C")
             sys.exit()
 
-        self.io.tool_warning("\n\n^C again to exit")
+        self.io.tool_warning("\n\n^C ponownie aby wyjść")
 
         self.last_keyboard_interrupt = now
 
@@ -1005,7 +1005,7 @@ class Coder:
         self.summarize_end()
 
         if self.verbose:
-            self.io.tool_output("Starting to summarize chat history.")
+            self.io.tool_output("Rozpoczynam podsumowywanie historii czatu.")
 
         self.summarizer_thread = threading.Thread(target=self.summarize_worker)
         self.summarizer_thread.start()
@@ -1018,7 +1018,7 @@ class Coder:
             self.io.tool_warning(err.args[0])
 
         if self.verbose:
-            self.io.tool_output("Finished summarizing chat history.")
+            self.io.tool_output("Zakończono podsumowywanie historii czatu.")
 
     def summarize_end(self):
         if self.summarizer_thread is None:
@@ -1384,7 +1384,7 @@ class Coder:
                 ) or getattr(completion.usage, "cache_read_input_tokens", 0)
 
                 if self.verbose:
-                    self.io.tool_output(f"Warmed {format_tokens(cache_hit_tokens)} cached tokens.")
+                    self.io.tool_output(f"Rozgrzano {format_tokens(cache_hit_tokens)} tokenów z pamięci podręcznej.")
 
         self.cache_warming_thread = threading.Timer(0, warm_cache_worker)
         self.cache_warming_thread.daemon = True
@@ -1399,19 +1399,19 @@ class Coder:
 
         if max_input_tokens and input_tokens >= max_input_tokens:
             self.io.tool_error(
-                f"Your estimated chat context of {input_tokens:,} tokens exceeds the"
-                f" {max_input_tokens:,} token limit for {self.main_model.name}!"
+                f"Szacowany kontekst czatu wynoszący {input_tokens:,} tokenów przekracza"
+                f" {max_input_tokens:,} tokenów limit dla {self.main_model.name}!"
             )
-            self.io.tool_output("To reduce the chat context:")
-            self.io.tool_output("- Use /drop to remove unneeded files from the chat")
-            self.io.tool_output("- Use /clear to clear the chat history")
-            self.io.tool_output("- Break your code into smaller files")
+            self.io.tool_output("Aby zmniejszyć kontekst czatu:")
+            self.io.tool_output("- Użyj /drop aby usunąć niepotrzebne pliki z czatu")
+            self.io.tool_output("- Użyj /clear aby wyczyścić historię czatu")
+            self.io.tool_output("- Podziel swój kod na mniejsze pliki")
             self.io.tool_output(
-                "It's probably safe to try and send the request, most providers won't charge if"
-                " the context limit is exceeded."
+                "Prawdopodobnie można bezpiecznie spróbować wysłać żądanie, większość dostawców nie pobiera"
+                " opłat, jeśli limit kontekstu zostanie przekroczony."
             )
 
-            if not self.io.confirm_ask("Try to proceed anyway?"):
+            if not self.io.confirm_ask("Spróbować mimo to?"):
                 return False
         return True
 
@@ -1482,7 +1482,7 @@ class Coder:
                     else:
                         self.io.tool_error(err_msg)
 
-                    self.io.tool_output(f"Retrying in {retry_delay:.1f} seconds...")
+                    self.io.tool_output(f"Ponawianie za {retry_delay:.1f} sekund...")
                     time.sleep(retry_delay)
                     continue
                 except KeyboardInterrupt:
@@ -1600,7 +1600,7 @@ class Coder:
             self.auto_commit(edited, context="Ran the linter")
             self.lint_outcome = not lint_errors
             if lint_errors:
-                ok = self.io.confirm_ask("Attempt to fix lint errors?")
+                ok = self.io.confirm_ask("Spróbować naprawić błędy lintowania?")
                 if ok:
                     self.reflected_message = lint_errors
                     return
@@ -1616,7 +1616,7 @@ class Coder:
             test_errors = self.commands.cmd_test(self.test_cmd)
             self.test_outcome = not test_errors
             if test_errors:
-                ok = self.io.confirm_ask("Attempt to fix test errors?")
+                ok = self.io.confirm_ask("Spróbować naprawić błędy testów?")
                 if ok:
                     self.reflected_message = test_errors
                     return
@@ -1970,7 +1970,7 @@ class Coder:
                 yield text
 
         if not received_content:
-            self.io.tool_warning("Empty response received from LLM. Check your provider account?")
+            self.io.tool_warning("Otrzymano pustą odpowiedź od LLM. Sprawdź konto dostawcy?")
 
     def live_incremental_response(self, final):
         show_resp = self.render_incremental_response(final)
@@ -2183,7 +2183,7 @@ class Coder:
         # if not fullp.stat().st_size:
         #     return
 
-        self.io.tool_output(f"Committing {path} before applying edits.")
+        self.io.tool_output(f"Zatwierdzam {path} przed zastosowaniem edycji.")
         self.need_commit_before_edits.add(path)
 
     def allowed_to_edit(self, path):
@@ -2198,7 +2198,7 @@ class Coder:
             return True
 
         if self.repo and self.repo.git_ignored_file(path):
-            self.io.tool_warning(f"Skipping edits to {path} that matches gitignore spec.")
+            self.io.tool_warning(f"Pomijam edycje {path} zgodne ze specyfikacją gitignore.")
             return
 
         if not Path(full_path).exists():

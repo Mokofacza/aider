@@ -34,7 +34,7 @@ def default_env_file(git_root):
 
 def get_parser(default_config_files, git_root):
     parser = configargparse.ArgumentParser(
-        description="aider is AI pair programming in your terminal",
+        description="cisicode to programowanie w parze z AI w twoim terminalu",
         add_config_file_help=True,
         default_config_files=default_config_files,
         config_file_parser_class=configargparse.YAMLConfigFileParser,
@@ -52,9 +52,9 @@ def get_parser(default_config_files, git_root):
             if hasattr(c, "edit_format") and c.edit_format is not None
         }
     )
-    group = parser.add_argument_group("Main model")
+    group = parser.add_argument_group("Główny model")
     group.add_argument(
-        "files", metavar="FILE", nargs="*", help="files to edit with an LLM (optional)"
+        "files", metavar="FILE", nargs="*", help="pliki do edycji z LLM (opcjonalne)"
     ).complete = shtab.FILE
     group.add_argument(
         "--model",
@@ -120,13 +120,13 @@ def get_parser(default_config_files, git_root):
     group.add_argument(
         "--model-settings-file",
         metavar="MODEL_SETTINGS_FILE",
-        default=".aider.model.settings.yml",
-        help="Specify a file with aider model settings for unknown models",
+        default=".cisicode.model.settings.yml",
+        help="Specify a file with model settings for unknown models",
     ).complete = shtab.FILE
     group.add_argument(
         "--model-metadata-file",
         metavar="MODEL_METADATA_FILE",
-        default=".aider.model.metadata.json",
+        default=".cisicode.model.metadata.json",
         help="Specify a file with context window and costs for unknown models",
     ).complete = shtab.FILE
     group.add_argument(
@@ -269,10 +269,10 @@ def get_parser(default_config_files, git_root):
     ##########
     group = parser.add_argument_group("History Files")
     default_input_history_file = (
-        os.path.join(git_root, ".aider.input.history") if git_root else ".aider.input.history"
+        os.path.join(git_root, ".cisicode.input.history") if git_root else ".cisicode.input.history"
     )
     default_chat_history_file = (
-        os.path.join(git_root, ".aider.chat.history.md") if git_root else ".aider.chat.history.md"
+        os.path.join(git_root, ".cisicode.chat.history.md") if git_root else ".cisicode.chat.history.md"
     )
     group.add_argument(
         "--input-history-file",
@@ -296,7 +296,7 @@ def get_parser(default_config_files, git_root):
         "--llm-history-file",
         metavar="LLM_HISTORY_FILE",
         default=None,
-        help="Log the conversation with the LLM to this file (for example, .aider.llm.history)",
+        help="Log the conversation with the LLM to this file (for example, .cisicode.llm.history)",
     ).complete = shtab.FILE
 
     ##########
@@ -411,16 +411,16 @@ def get_parser(default_config_files, git_root):
         "--gitignore",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="Enable/disable adding .aider* to .gitignore (default: True)",
+        help="Enable/disable adding .cisicode* to .gitignore (default: True)",
     )
     group.add_argument(
         "--add-gitignore-files",
         action=argparse.BooleanOptionalAction,
         default=False,
-        help="Enable/disable the addition of files listed in .gitignore to Aider's editing scope.",
+        help="Enable/disable the addition of files listed in .gitignore to CisiCode's editing scope.",
     )
     default_aiderignore_file = (
-        os.path.join(git_root, ".aiderignore") if git_root else ".aiderignore"
+        os.path.join(git_root, ".cisicodeignore") if git_root else ".cisicodeignore"
     )
 
     group.add_argument(
@@ -428,7 +428,7 @@ def get_parser(default_config_files, git_root):
         metavar="AIDERIGNORE",
         type=lambda path_str: resolve_aiderignore_path(path_str, git_root),
         default=default_aiderignore_file,
-        help="Specify the aider ignore file (default: .aiderignore in git root)",
+        help="Specify the ignore file (default: .cisicodeignore in git root)",
     ).complete = shtab.FILE
     group.add_argument(
         "--subtree-only",
@@ -453,7 +453,7 @@ def get_parser(default_config_files, git_root):
         action=argparse.BooleanOptionalAction,
         default=None,
         help=(
-            "Attribute aider code changes in the git author name (default: True). If explicitly set"
+            "Attribute cisicode code changes in the git author name (default: True). If explicitly set"
             " to True, overrides --attribute-co-authored-by precedence."
         ),
     )
@@ -462,28 +462,28 @@ def get_parser(default_config_files, git_root):
         action=argparse.BooleanOptionalAction,
         default=None,
         help=(
-            "Attribute aider commits in the git committer name (default: True). If explicitly set"
-            " to True, overrides --attribute-co-authored-by precedence for aider edits."
+            "Attribute cisicode commits in the git committer name (default: True). If explicitly set"
+            " to True, overrides --attribute-co-authored-by precedence for cisicode edits."
         ),
     )
     group.add_argument(
         "--attribute-commit-message-author",
         action=argparse.BooleanOptionalAction,
         default=False,
-        help="Prefix commit messages with 'aider: ' if aider authored the changes (default: False)",
+        help="Prefix commit messages with 'cisicode: ' if cisicode authored the changes (default: False)",
     )
     group.add_argument(
         "--attribute-commit-message-committer",
         action=argparse.BooleanOptionalAction,
         default=False,
-        help="Prefix all commit messages with 'aider: ' (default: False)",
+        help="Prefix all commit messages with 'cisicode: ' (default: False)",
     )
     group.add_argument(
         "--attribute-co-authored-by",
         action=argparse.BooleanOptionalAction,
         default=True,
         help=(
-            "Attribute aider edits using the Co-authored-by trailer in the commit message"
+            "Attribute cisicode edits using the Co-authored-by trailer in the commit message"
             " (default: True). If True, this takes precedence over default --attribute-author and"
             " --attribute-committer behavior unless they are explicitly set to True."
         ),
@@ -604,7 +604,7 @@ def get_parser(default_config_files, git_root):
     group.add_argument(
         "--check-update",
         action=argparse.BooleanOptionalAction,
-        help="Check for new aider versions on launch",
+        help="Check for new cisicode versions on launch",
         default=True,
     )
     group.add_argument(
@@ -623,7 +623,7 @@ def get_parser(default_config_files, git_root):
         "--upgrade",
         "--update",
         action="store_true",
-        help="Upgrade aider to the latest version from PyPI",
+        help="Upgrade cisicode to the latest version from PyPI",
         default=False,
     )
     group.add_argument(
@@ -657,14 +657,14 @@ def get_parser(default_config_files, git_root):
         "--gui",
         "--browser",
         action=argparse.BooleanOptionalAction,
-        help="Run aider in your browser (default: False)",
+        help="Run cisicode in your browser (default: False)",
         default=False,
     )
     group.add_argument(
         "--copy-paste",
         action=argparse.BooleanOptionalAction,
         default=False,
-        help="Enable automatic copy/paste of chat between aider and web UI (default: False)",
+        help="Enable automatic copy/paste of chat between cisicode and web UI (default: False)",
     )
     group.add_argument(
         "--apply",
@@ -791,7 +791,7 @@ def get_parser(default_config_files, git_root):
         is_config_file=True,
         metavar="CONFIG_FILE",
         help=(
-            "Specify the config file (default: search for .aider.conf.yml in git root, cwd"
+            "Specify the config file (default: search for .cisicode.conf.yml in git root, cwd"
             " or home directory)"
         ),
     ).complete = shtab.FILE

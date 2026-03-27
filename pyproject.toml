@@ -22,7 +22,8 @@ dynamic = ["dependencies", "optional-dependencies", "version"]
 Homepage = "https://github.com/Aider-AI/aider"
 
 [project.scripts]
-CisiCode = "aider.main:main"
+CisiCode = "cisicode_run:main"
+cisicode = "cisicode_run:main"
 
 [tool.setuptools.dynamic]
 dependencies = { file = "requirements.txt" }
@@ -35,9 +36,8 @@ playwright = { file = "requirements/requirements-playwright.txt" }
 
 [tool.setuptools]
 include-package-data = true
-
-[tool.setuptools.packages.find]
-include = ["aider"]
+py-modules = ["cisicode_run"]
+packages = ["aider"]
 
 [build-system]
 requires = ["setuptools>=68", "setuptools_scm[toml]>=8"]
